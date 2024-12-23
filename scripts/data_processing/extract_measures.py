@@ -74,17 +74,19 @@ def extract_measures(items_wordsfix, chars_mapping, items_path, save_path, repro
         screens_text = utils.load_lines_text_by_screen(item.stem, items_path)
         item_measures_path = save_path / 'measures' / item.name
         item_trials = get_trials_to_process(item, item_measures_path, reprocess)
-        item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, chars_mapping)
-        item_measures = add_aggregated_measures(item_measures)
-        item_avg_measures = average_measures(item_measures,
-                                             measures=['FFD', 'SFD', 'FPRT', 'TFD', 'RPD', 'RRT', 'SPRT'],
-                                             n_bins=10)
-        items_measures = pd.concat([items_measures, item_avg_measures], ignore_index=True)
-        items_scanpaths[item.name] = item_scanpaths
-        utils.save_measures_by_subj(item_measures, item_measures_path)
+        if item_trials:
+            item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, chars_mapping)
+            item_measures = add_aggregated_measures(item_measures)
+            item_avg_measures = average_measures(item_measures,
+                                                 measures=['FFD', 'SFD', 'FPRT', 'TFD', 'RPD', 'RRT', 'SPRT'],
+                                                 n_bins=10)
+            items_measures = pd.concat([items_measures, item_avg_measures], ignore_index=True)
+            items_scanpaths[item.name] = item_scanpaths
+            utils.save_measures_by_subj(item_measures, item_measures_path)
 
-    words_avg_measures = words_measurements(items_measures, save_path)
-    utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure='FPRT')
+    if not items_measures.empty:
+        words_avg_measures = words_measurements(items_measures, save_path)
+        utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure='FPRT')
 
 
 def extract_item_measures(screens_text, trials, chars_mapping):
