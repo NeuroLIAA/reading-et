@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
-import statsmodels.api as sm
+from pymer4 import Lmer
 import argparse
 from pathlib import Path
 from scripts.data_processing.extract_measures import main as extract_measures
@@ -22,7 +22,7 @@ def do_analysis(items_paths, words_freq_file, stats_file, save_path):
     print_stats(et_measures, items_stats, save_path)
 
     et_measures = remove_excluded_words(et_measures)
-    plot_measures(et_measures, save_path)
+    # plot_measures(et_measures, save_path)
     mlm_analysis(log_normalize_durations(et_measures), words_freq)
 
 
@@ -57,52 +57,48 @@ def plot_measures(et_measures, save_path):
 
 
 def mlm_analysis(et_measures, words_freq):
-    # This is a crossed random intercept (NOT slope) model with no independent groups
     et_measures['group'] = 1
     et_measures['word_len'] = et_measures['word'].apply(lambda x: 1 / len(x) if x else 0)
     et_measures['word_freq'] = et_measures['word'].apply(lambda x:
                                                          log(words_freq.loc[words_freq['word'] == x, 'cnt'].values[0])
                                                          if x in words_freq['word'].values else 0)
 
-    variance_components = {'subj': '0 + C(subj)', 'item': '0 + C(item)'}
-    skipped_formula = 'skipped ~ word_len'
-    mixedlm_fit_and_save(skipped_formula, vc_formula=variance_components, re_formula='0', group='group',
-                         data=et_measures, centre=False, name='skipped_mlm', family='binomial', save_path=save_path)
+    et_measures['word_idx'] = et_measures.groupby(['subj', 'item'])['word_idx'].transform(lambda x: x / x.max())
+    et_measures['screen_pos'] = (et_measures.groupby(['subj', 'item', 'screen'])['screen_pos']
+                                 .transform(lambda x: x / x.max()))
+    et_measures['sentence_pos'] = et_measures.groupby('sentence_idx')['sentence_pos'].transform(lambda x: x / x.max())
+    et_measures['sentence_pos_squared'] = et_measures['sentence_pos'] * et_measures['sentence_pos']
+    et_measures.to_csv('results/et_measures.csv')
+    print(et_measures)
+
+    fit_mlm(name='skipped',
+            formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
+                    '+ RC + (1|subj) + (1|item)',
+            data=et_measures,
+            model_family='binomial')
+
     et_measures = remove_skipped_words(et_measures)
-    ffd_formula = 'FFD ~ word_len + word_freq'
-    fprt_formula = 'FPRT ~ word_len + word_freq'
-    mixedlm_fit_and_save(ffd_formula, vc_formula=variance_components, re_formula='0', group='group',
-                         data=et_measures, centre=True, name='ffd_mlm', family='mlm', save_path=save_path)
-    mixedlm_fit_and_save(fprt_formula, vc_formula=variance_components, re_formula='0', group='group',
-                         data=et_measures, centre=True, name='fprt_mlm', family='mlm', save_path=save_path)
+
+    models = [
+        ('FFD',
+         'FFD ~ word_len * word_freq + sentence_pos + word_idx + screen_pos + RR + RC + FC + (1|subj) + (1|item)'),
+        ('FPRT',
+         'FPRT ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos + RR + RC + SPRT '
+         '+ (1|subj) + (1|item)')
+    ]
+
+    for name, formula in models:
+        fit_mlm(name, formula, et_measures)
 
 
-def mixedlm_fit_and_save(formula, vc_formula, re_formula, group, data, centre, name, family, save_path):
-    if centre:
-        fixed_effects = get_continuous_fixed_effects(formula)
-        data = centre_attributes(data, fixed_effects)
-    if family == 'binomial':
-        mixedlm_model = sm.BinomialBayesMixedGLM.from_formula(formula, vc_formulas=vc_formula, data=data)
-        mixedlm_results = mixedlm_model.fit_vb()
-    else:
-        mixedlm_model = sm.MixedLM.from_formula(formula, groups=group, vc_formula=vc_formula, re_formula=re_formula,
-                                                data=data)
-        mixedlm_results = mixedlm_model.fit()
-    print(mixedlm_results.summary())
-    with open(save_path / name, 'w') as f:
-        f.write(mixedlm_results.summary().as_text())
+def fit_mlm(name, formula, data, model_family='gaussian'):
+    model = Lmer(formula, data=data, family=model_family)
+    results = model.fit()
+    model_aic = model.AIC
+    print(results)
 
-
-def get_continuous_fixed_effects(formula):
-    fixed_effects = formula.split('~')[1].split('+')
-    fixed_effects = [effect.strip() for effect in fixed_effects if 'C' not in effect]
-    return fixed_effects
-
-
-def centre_attributes(data, attributes):
-    for attribute in attributes:
-        data[attribute] = data[attribute] - data[attribute].mean()
-    return data
+    with open(save_path / f'{name}_mlm.txt', 'w') as f:
+        f.write(f"{formula}\n\n{results}\n\nAIC: {model_aic}")
 
 
 def remove_skipped_words(et_measures):
