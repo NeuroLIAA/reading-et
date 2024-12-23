@@ -69,21 +69,19 @@ def mlm_analysis(et_measures, words_freq):
     et_measures['sentence_pos'] = et_measures.groupby('sentence_idx')['sentence_pos'].transform(lambda x: x / x.max())
     et_measures['sentence_pos_squared'] = et_measures['sentence_pos'] * et_measures['sentence_pos']
     et_measures.to_csv('results/et_measures.csv')
-    print(et_measures)
 
     fit_mlm(name='skipped',
             formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
-                    '+ RC + (1|subj) + (1|item)',
+                    '+ (1|subj) + (1|item)',
             data=et_measures,
             model_family='binomial')
 
     et_measures = remove_skipped_words(et_measures)
-
     models = [
         ('FFD',
-         'FFD ~ word_len * word_freq + sentence_pos + word_idx + screen_pos + RR + RC + FC + (1|subj) + (1|item)'),
+         'FFD ~ word_len * word_freq + sentence_pos + word_idx + screen_pos + (1|subj) + (1|item)'),
         ('FPRT',
-         'FPRT ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos + RR + RC + SPRT '
+         'FPRT ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
          '+ (1|subj) + (1|item)')
     ]
 
