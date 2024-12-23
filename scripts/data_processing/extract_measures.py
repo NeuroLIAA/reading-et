@@ -1,11 +1,10 @@
 from scripts.data_processing import utils
 from pathlib import Path
 from scripts.data_processing.assign_fix_to_words import assign_fixations_to_words
+from scripts.data_processing.utils import average_measures
 from tqdm import tqdm
 import argparse
 import pandas as pd
-
-from scripts.data_processing.utils import average_measures
 
 PUNCTUATION_MARKS = ['?', '!', '.']
 WEIRD_CHARS = ['¿', '?', '¡', '!', '.', '−', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
@@ -94,9 +93,9 @@ def extract_item_measures(screens_text, trials, chars_mapping):
     for trial in trials:
         trial_df = pd.read_pickle(trial)
         add_trial_measures(trial_df, screens_text, chars_mapping, measures, words_fix)
-    measures = pd.DataFrame(measures, columns=['subj', 'screen', 'word_idx', 'word', 'sentence_pos', 'screen_pos',
-                                               'excluded', 'FFD', 'SFD', 'FPRT', 'RPD', 'TFD', 'RRT', 'SPRT',
-                                               'FC', 'RC'])
+    measures = pd.DataFrame(measures, columns=['subj', 'screen', 'word_idx', 'word', 'sentence_idx', 'sentence_pos',
+                                               'screen_pos', 'excluded', 'FFD', 'SFD', 'FPRT', 'RPD', 'TFD', 'RRT',
+                                               'SPRT', 'FC', 'RC'])
 
     words_fix = pd.DataFrame(words_fix, columns=['subj', 'fix_idx', 'fix_duration', 'word_idx'])
     words_fix = words_fix.sort_values(['subj', 'fix_idx'])
@@ -127,8 +126,7 @@ def add_aggregated_measures(item_measures):
 
 
 def add_trial_measures(trial, screens_text, chars_mapping, measures, words_fix):
-    word_idx = 0
-    sentence_pos = 0
+    word_idx, sentence_idx, sentence_pos = 0, 0, 0
     for screen in screens_text:
         screen_words = []
         add_words_to_list(screens_text[screen], screen_words)
@@ -142,8 +140,10 @@ def add_trial_measures(trial, screens_text, chars_mapping, measures, words_fix):
 
             word_fix = screen_fix[screen_fix['word_pos'] == word_pos]
             add_word_fixations(word_fix, word_idx, words_fix)
-            add_word_measures(word_idx, clean_word, sentence_pos, word_pos, exclude, word_fix, screen_fix, measures)
+            add_word_measures(word_idx, clean_word, sentence_idx, sentence_pos, word_pos, exclude, word_fix,
+                              screen_fix, measures)
             sentence_pos = sentence_pos + 1 if not is_end_of_sentence(word) else 0
+            sentence_idx = sentence_idx if not is_end_of_sentence(word) else sentence_idx + 1
             word_idx += 1
 
 
@@ -153,14 +153,15 @@ def add_word_fixations(word_fix, word_idx, words_fix):
                          for fix_idx, fix_duration in zip(word_fix['trial_fix'], word_fix['duration']))
 
 
-def add_word_measures(word_idx, clean_word, sentence_pos, screen_pos, exclude, word_fix, screen_fix, measures):
+def add_word_measures(word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude, word_fix, screen_fix,
+                      measures):
     subj_name, screen = word_fix['subj'].iloc[0], word_fix['screen'].iloc[0]
     if has_no_fixations(word_fix) or exclude:
-        measures.append([subj_name, screen, word_idx, clean_word, sentence_pos, screen_pos, exclude,
+        measures.append([subj_name, screen, word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude,
                          0, 0, 0, 0, 0, 0, 0, 0, 0])
     else:
         ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc = word_measures(word_fix, screen_fix)
-        measures.append([subj_name, screen, word_idx, clean_word, sentence_pos, screen_pos, exclude,
+        measures.append([subj_name, screen, word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude,
                          ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc])
 
 
