@@ -45,7 +45,8 @@ def participantdata(raw_path, participant, ascii_path, config_file, stimuli_path
     save_profile(participant_path, out_path)
     items = participant_path.glob('*.mat')
     for item in items:
-        if item.name == 'Test.mat' or item.name == 'metadata.mat': continue
+        if item.name == 'Test.mat' or item.name == 'metadata.mat':
+            continue
         item(item, participant_path, ascii_path, config_file, stimuli_path, out_path)
 
 
@@ -58,7 +59,8 @@ def rawdata(raw_path, ascii_path, config_file, stimuli_path, save_path):
 def save_profile(participant_rawpath, save_path):
     metafile = loadmat(str(participant_rawpath / 'metadata.mat'), simplify_cells=True)
     stimuli_order = list(metafile['shuffled_stimuli'][1:].astype(str))
-    profile = {'name': [metafile['subjname']], 'reading_level': [int(metafile['reading_level'])],
+    profile = {'name': [metafile['subjname']], 'age': [metafile['age']],
+               'reading_level': [int(metafile['reading_level'])],
                'gender': [metafile['gender']], 'n_sessions': [metafile['n_sessions']],
                'fst_date': [metafile['fst_date']], 'snd_date': [metafile['snd_date']],
                'fst_sleeptime': [metafile['fst_sleeptime']], 'snd_sleeptime': [metafile['snd_sleeptime']],
