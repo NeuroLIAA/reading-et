@@ -37,7 +37,8 @@ def item(item, participant_path, ascii_path, config_file, stimuli_path, save_pat
     divide_data_by_screen(screen_sequence, et_messages, trial_fix, trial_path, stimuli, filter_outliers=True)
 
     flags = {'edited': False, 'firstval_iswrong': not manualval_results[0],
-             'lastval_iswrong': not manualval_results[1], 'wrong_answers': 0, 'iswrong': False, 'session': item_session}
+             'lastval_iswrong': not manualval_results[1], 'wrong_answers': 0, 'iswrong': False,
+             'session': item_session, 'date': trial_date.strftime('%d-%m-%Y %H:%M')}
     utils.save_structs(et_messages,
                        screen_sequence,
                        DataFrame(trial_metadata['questions_answers']),
