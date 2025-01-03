@@ -9,10 +9,8 @@ def select_trial(raw_path, ascii_path, config, questions, stimuli_path, data_pat
     subj_datapath, subj_rawpath = Path(data_path) / subj, Path(raw_path) / subj
     if not subj_rawpath.exists():
         raise ValueError('Participant not found')
-
     subj_items, subj_profile = load_subj_trials(subj_rawpath, ascii_path, config, stimuli_path, subj_datapath)
     trials_flags = utils.load_flags(subj_items, subj_datapath)
-
     main_menu(subj_items, trials_flags, subj_profile, subj_datapath, stimuli_path, questions)
 
 
@@ -20,7 +18,6 @@ def list_participants(raw_path, processed_path):
     participants = [dir_.name for dir_ in utils.get_dirs(raw_path)]
     participants = flag_and_order_participants(raw_path, processed_path, participants)
     chosen_participant = list_options(participants, prompt='Choose a participant: ')
-
     return participants[chosen_participant]
 
 
@@ -50,7 +47,6 @@ def show_trial_menu(subj_items, trials_flags, subj_datapath, stimuli_path, quest
     stimuli = utils.load_stimuli(chosen_item, stimuli_path)
     trial_menu(chosen_item, trial_flags, trial_path, stimuli, questions)
     updated_options = items_list(subj_items, trials_flags)
-
     return updated_options
 
 
@@ -65,7 +61,6 @@ def main_menu(subj_items, trials_flags, subj_profile, subj_datapath, stimuli_pat
 def items_list(subj_items, trials_flags):
     options = [subj_items[i] + ' ' + parse_flags(trials_flags[subj_items[i]]) for i in range(len(subj_items))]
     options += ['Exit']
-
     return options
 
 
@@ -80,9 +75,8 @@ def trial_menu(item, trial_flags, trial_path, stimuli, questions):
 
 
 def print_mainmenu(subj_profile, options):
-    print('Participant:', subj_profile['name'][0], '| Reading level:', subj_profile['reading_level'][0])
+    print('Participant:', subj_profile['name'][0])
     chosen_option = list_options(options, 'Enter the item number to edit: ')
-
     return chosen_option
 
 
@@ -100,7 +94,6 @@ def handle_action(item, action, stimuli, questions_file, trial_flags, trial_path
         trial_flags['edited'] = True
     elif action == 'Exit':
         exit()
-
     utils.update_flags(trial_flags, trial_path)
 
 
@@ -111,7 +104,6 @@ def list_options(options, prompt):
     while not choice.isdigit() or int(choice) < 1 or int(choice) > len(options):
         print('Invalid choice. Please enter a number between 1 and', len(options))
         choice = input(prompt)
-
     return int(choice) - 1
 
 
@@ -122,7 +114,6 @@ def read_words_associations(questions_file, item, trial_path):
         print(f'{i + 1}. {words[i]}')
         answer = answers[i] if len(answers) > i else ''
         print(f'      {answer}')
-
     input('Press enter to continue...')
 
 
@@ -138,7 +129,6 @@ def read_questions_and_answers(questions_file, item, trial_path):
     while not wrong_answers.isdigit() or int(wrong_answers) < 0 or int(wrong_answers) > len(questions):
         print('Invalid choice. Please enter a number between 0 and', len(questions))
         wrong_answers = input('Number of wrong answers: ')
-
     return int(wrong_answers)
 
 
@@ -155,7 +145,6 @@ def load_subj_trials(subj_rawpath, ascii_path, config, stimuli_path, data_path):
         parse.item(subj_rawpath / f'{rawitem}.mat', subj_rawpath, ascii_path, config, stimuli_path, data_path)
     subj_profile = utils.load_profile(data_path)
     subj_items = utils.reorder(subj_items, subj_profile['stimuli_order'][0])
-
     return subj_items, subj_profile
 
 
@@ -171,7 +160,6 @@ def parse_flags(flags):
         trial_status += '\u26A0\uFE0F ' + str(wrong_validations) + ' '
     if flags['wrong_answers'][0]:
         trial_status += '\u2b55 ' + str(flags['wrong_answers'][0]) + ' '
-
     return trial_status
 
 
