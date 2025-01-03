@@ -1,9 +1,9 @@
 from .et_utils import et_utils
 from pathlib import Path
 from scipy.io import loadmat
+from pandas import to_datetime, DataFrame
 import argparse
 import shutil
-import pandas as pd
 from . import utils
 
 """ EyeLink's EDF files are assumed to having been converted to ASCII with edf2asc.exe.
@@ -14,9 +14,16 @@ from . import utils
 
 def item(item, participant_path, ascii_path, config_file, stimuli_path, save_path):
     print(f'Processing {item}')
-    trial_metadata = loadmat(str(item), simplify_cells=True)['trial']
+    subj_metadata = loadmat(str(participant_path / 'metadata.mat'), simplify_cells=True)
+    trial_metadata = loadmat(str(item), simplify_cells=True)
+    trial_date = to_datetime(trial_metadata['__header__'][-20:].decode('utf-8'), format='%b %d %H:%M:%S %Y')
+    snd_date = to_datetime(subj_metadata['snd_date'], format='%d-%m-%Y %H:%M')
+    item_session = 1 if trial_date.date() < snd_date.date() else 2
+
+    trial_metadata = trial_metadata['trial']
     trial_path = save_path / item.name.split('.')[0]
-    if trial_path.exists(): shutil.rmtree(trial_path)
+    if trial_path.exists():
+        shutil.rmtree(trial_path)
     trial_path.mkdir(parents=True)
 
     stimuli_index, subj_name = trial_metadata['stimuli_index'], trial_metadata['subjname']
@@ -25,17 +32,17 @@ def item(item, participant_path, ascii_path, config_file, stimuli_path, save_pat
     utils.save_calibrationdata(cal_points, val_points, val_offsets, trial_path)
 
     manualval_results = save_manualvalidation_fixations(et_messages, trial_fix, trial_path)
-    screen_sequence = pd.DataFrame.from_records(trial_metadata['sequence'])
+    screen_sequence = DataFrame.from_records(trial_metadata['sequence'])
     stimuli = utils.load_stimuli(item.name[:-4], stimuli_path, config_file)
     divide_data_by_screen(screen_sequence, et_messages, trial_fix, trial_path, stimuli, filter_outliers=True)
 
-    flags = {'edited': False, 'firstval_iswrong': not (manualval_results[0]),
-             'lastval_iswrong': not (manualval_results[1]), 'wrong_answers': 0, 'iswrong': False}
+    flags = {'edited': False, 'firstval_iswrong': not manualval_results[0],
+             'lastval_iswrong': not manualval_results[1], 'wrong_answers': 0, 'iswrong': False, 'session': item_session}
     utils.save_structs(et_messages,
                        screen_sequence,
-                       pd.DataFrame(trial_metadata['questions_answers']),
-                       pd.DataFrame(trial_metadata['synonyms_answers']),
-                       pd.DataFrame(flags, index=[0]),
+                       DataFrame(trial_metadata['questions_answers']),
+                       DataFrame(trial_metadata['synonyms_answers']),
+                       DataFrame(flags, index=[0]),
                        trial_path)
 
 
@@ -68,7 +75,7 @@ def save_profile(participant_rawpath, save_path):
                'stimuli_order': [stimuli_order]}
     if not save_path.exists():
         save_path.mkdir(parents=True)
-    pd.DataFrame(profile).to_pickle(save_path / 'profile.pkl')
+    DataFrame(profile).to_pickle(save_path / 'profile.pkl')
 
 
 def save_manualvalidation_fixations(et_messages, trial_fix, trial_path, val_legend='validation', num_points=9,
