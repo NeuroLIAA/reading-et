@@ -22,7 +22,7 @@ def do_analysis(items_paths, words_freq_file, stats_file, save_path):
     print_stats(et_measures, items_stats, save_path)
 
     et_measures = remove_excluded_words(et_measures)
-    # plot_measures(et_measures, save_path)
+    plot_measures(et_measures, save_path)
     mlm_analysis(log_normalize_durations(et_measures), words_freq)
 
 
@@ -68,7 +68,6 @@ def mlm_analysis(et_measures, words_freq):
                                  .transform(lambda x: x / x.max()))
     et_measures['sentence_pos'] = et_measures.groupby('sentence_idx')['sentence_pos'].transform(lambda x: x / x.max())
     et_measures['sentence_pos_squared'] = et_measures['sentence_pos'] * et_measures['sentence_pos']
-    et_measures.to_csv('results/et_measures.csv')
 
     fit_mlm(name='skipped',
             formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
@@ -119,25 +118,13 @@ def add_len_freq_skipped(et_measures, words_freq):
     et_measures['word_freq'] = et_measures['word'].apply(lambda x:
                                                          words_freq.loc[words_freq['word'] == x, 'cnt'].values[0]
                                                          if x in words_freq['word'].values else 0)
-
     return et_measures
 
 
 def log_normalize_durations(trial_measures):
     for duration_measure in ['FFD', 'SFD', 'FPRT', 'RPD', 'TFD', 'SPRT']:
         trial_measures[duration_measure] = trial_measures[duration_measure].apply(lambda x: log(x))
-
     return trial_measures
-
-
-def categorize_skill(reading_skill, thresholds):
-    category = 'low'
-    if thresholds['low'] < reading_skill <= thresholds['medium']:
-        category = 'medium'
-    elif reading_skill > thresholds['medium']:
-        category = 'high'
-
-    return category
 
 
 def plot_words_effects(et_measures, save_path):
@@ -184,7 +171,6 @@ def plot_boxplots(fixed_effects, measures, data, x_labels, y_labels, ax_titles,
     fig.suptitle(fig_title)
     fig.savefig(save_file, bbox_inches='tight')
     plt.show()
-
     return fig
 
 
