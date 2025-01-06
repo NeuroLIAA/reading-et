@@ -94,6 +94,7 @@ def fit_mlm(name, formula, data, model_family='gaussian'):
     model_aic = model.AIC
     print(results)
 
+    results.to_csv(save_path / f'{name}_mlm.csv')
     with open(save_path / f'{name}_mlm.txt', 'w') as f:
         f.write(f"{formula}\n\n{results}\n\nAIC: {model_aic}")
 
