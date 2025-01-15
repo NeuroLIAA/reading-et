@@ -57,7 +57,6 @@ def plot_measures(et_measures, save_path):
 
 
 def mlm_analysis(et_measures, words_freq):
-    et_measures['group'] = 1
     et_measures['word_len'] = et_measures['word'].apply(lambda x: 1 / len(x) if x else 0)
     et_measures['word_freq'] = et_measures['word'].apply(lambda x:
                                                          log(words_freq.loc[words_freq['word'] == x, 'cnt'].values[0])
@@ -91,12 +90,11 @@ def mlm_analysis(et_measures, words_freq):
 def fit_mlm(name, formula, data, model_family='gaussian'):
     model = Lmer(formula, data=data, family=model_family)
     results = model.fit()
-    model_aic = model.AIC
+    print(f'{name} model: {formula}')
     print(results)
+    print(f'AIC: {model.AIC}')
 
     results.to_csv(save_path / f'{name}_mlm.csv')
-    with open(save_path / f'{name}_mlm.txt', 'w') as f:
-        f.write(f"{formula}\n\n{results}\n\nAIC: {model_aic}")
 
 
 def remove_skipped_words(et_measures):
