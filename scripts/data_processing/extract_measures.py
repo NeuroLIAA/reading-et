@@ -92,8 +92,9 @@ def extract_item_measures(screens_text, trials, trials_path, chars_mapping):
     measures, words_fix = [], []
     for trial in trials:
         trial_df = pd.read_pickle(trial)
+        trial_index = len(measures)
         add_trial_measures(trial_df, screens_text, chars_mapping, measures, words_fix)
-        add_fatigue_score(trial, trials_path, measures)
+        add_fatigue_score(trial, trials_path, trial_index, measures)
     measures = pd.DataFrame(measures, columns=['subj', 'screen', 'word_idx', 'word', 'sentence_idx', 'sentence_pos',
                                                'screen_pos', 'excluded', 'FFD', 'SFD', 'FPRT', 'RPD', 'TFD', 'RRT',
                                                'SPRT', 'FC', 'RC', 'fatigue'])
@@ -134,7 +135,7 @@ def add_trial_measures(trial, screens_text, chars_mapping, measures, words_fix):
             word_idx += 1
 
 
-def add_fatigue_score(trial, trials_path, measures):
+def add_fatigue_score(trial, trials_path, trial_index, measures):
     trial_flags = pd.read_pickle(trials_path / trial.stem / trial.parent.name / 'flags.pkl')
     subj_profile = pd.read_pickle(trials_path / trial.stem / 'profile.pkl')
     if trial_flags['session'].iloc[0] == 1 and subj_profile['fst_wakeuptime'].iloc[0] != 'NA':
@@ -158,7 +159,8 @@ def add_fatigue_score(trial, trials_path, measures):
             if vigil_component < 0:
                 vigil_component = 0
         fatigue_score = sleep_component + vigil_component
-    measures[-1].extend([fatigue_score])
+    for i in range(trial_index, len(measures)):
+        measures[i].extend([fatigue_score])
 
 
 def build_scanpaths(words_fix, screens_text, chars_mapping):
