@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 from scripts.data_processing.extract_measures import main as extract_measures
 from scripts.data_processing.wa_task import parse_wa_task
-from scripts.data_processing.utils import get_dirs, get_files, log, load_profile
+from scripts.data_processing.utils import get_dirs, get_files, log
 
 """ Script to perform data analysis on eye-tracking measures. It is composed of three steps:
     1. Assign the fixations from each trial to their corresponding word in the text
@@ -68,6 +68,9 @@ def mlm_analysis(et_measures, words_freq):
     et_measures['sentence_pos'] = et_measures.groupby('sentence_idx')['sentence_pos'].transform(lambda x: x / x.max())
     et_measures['sentence_pos_squared'] = et_measures['sentence_pos'] * et_measures['sentence_pos']
 
+    # to analyze fatigue effects, remove non-fatigue trials
+    # et_measures = remove_nonfatigue(et_measures)
+
     fit_mlm(name='skipped',
             formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
                     '+ (1|subj) + (1|item)',
@@ -77,7 +80,7 @@ def mlm_analysis(et_measures, words_freq):
     et_measures = remove_skipped_words(et_measures)
     models = [
         ('FFD',
-         'FFD ~ word_len * word_freq + sentence_pos + word_idx + screen_pos + (1|subj) + (1|item)'),
+         'FFD ~ word_len * word_freq + sentence_pos +  word_idx + screen_pos + (1|subj) + (1|item)'),
         ('FPRT',
          'FPRT ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
          '+ (1|subj) + (1|item)')
@@ -94,7 +97,14 @@ def fit_mlm(name, formula, data, model_family='gaussian'):
     print(results)
     print(f'AIC: {model.AIC}')
 
-    results.to_csv(save_path / f'{name}_mlm.csv')
+    results['formula'] = formula
+    results['aic'] = model.AIC
+    results.to_csv(save_path / f'{name}_mlm_sleepwakeonly.csv')
+
+
+def remove_nonfatigue(et_measures):
+    et_measures = et_measures.dropna(subset=['fatigue'])
+    return et_measures
 
 
 def remove_skipped_words(et_measures):
