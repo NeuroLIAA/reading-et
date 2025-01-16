@@ -61,15 +61,20 @@ def mlm_analysis(et_measures, words_freq):
     et_measures['word_freq'] = et_measures['word'].apply(lambda x:
                                                          log(words_freq.loc[words_freq['word'] == x, 'cnt'].values[0])
                                                          if x in words_freq['word'].values else 0)
+    et_measures = et_measures.loc[et_measures['word_freq'] != 0, :].copy()
 
     et_measures['word_idx'] = et_measures.groupby(['subj', 'item'])['word_idx'].transform(lambda x: x / x.max())
     et_measures['screen_pos'] = (et_measures.groupby(['subj', 'item', 'screen'])['screen_pos']
                                  .transform(lambda x: x / x.max()))
     et_measures['sentence_pos'] = et_measures.groupby('sentence_idx')['sentence_pos'].transform(lambda x: x / x.max())
     et_measures['sentence_pos_squared'] = et_measures['sentence_pos'] * et_measures['sentence_pos']
+    fixed_effects = ['word_len', 'word_freq', 'sentence_pos', 'sentence_pos_squared', 'word_idx', 'screen_pos']
+    for fixed_effect in fixed_effects:
+        et_measures[fixed_effect] = et_measures[fixed_effect] - et_measures[fixed_effect].mean()
 
     # to analyze fatigue effects, remove non-fatigue trials
     # et_measures = remove_nonfatigue(et_measures)
+    # et_measures['fatigue'] = et_measures['fatigue'] - et_measures['fatigue'].mean()
 
     fit_mlm(name='skipped',
             formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
@@ -99,7 +104,7 @@ def fit_mlm(name, formula, data, model_family='gaussian'):
 
     results['formula'] = formula
     results['aic'] = model.AIC
-    results.to_csv(save_path / f'{name}_mlm_sleepwakeonly.csv')
+    results.to_csv(save_path / f'{name}_mlm.csv')
 
 
 def remove_nonfatigue(et_measures):
@@ -193,9 +198,9 @@ def plot_histograms(et_measures, measures, ax_titles, y_labels, save_file):
         sns.histplot(x=measure, data=et_measures, ax=ax, binwidth=1)
         ax.set_title(ax_titles[i])
         ax.set_ylabel(y_labels[i])
+    fig.savefig(save_file)
     plt.tight_layout()
     plt.show()
-    fig.savefig(save_file)
 
 
 def load_trial(trial, item_name, words_freq):
