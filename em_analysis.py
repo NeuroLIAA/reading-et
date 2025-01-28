@@ -22,7 +22,7 @@ def do_analysis(items_paths, words_freq_file, stats_file, save_path):
     print_stats(et_measures, items_stats, save_path)
 
     et_measures = remove_excluded_words(et_measures)
-    # plot_measures(et_measures, save_path)
+    plot_measures(et_measures, save_path)
     mlm_analysis(log_normalize_durations(et_measures), words_freq)
 
 
@@ -72,10 +72,6 @@ def mlm_analysis(et_measures, words_freq):
     for fixed_effect in fixed_effects:
         et_measures[fixed_effect] = et_measures[fixed_effect] - et_measures[fixed_effect].mean()
 
-    # to analyze fatigue effects, remove non-fatigue trials
-    # et_measures = remove_nonfatigue(et_measures)
-    # et_measures['fatigue'] = et_measures['fatigue'] - et_measures['fatigue'].mean()
-
     fit_mlm(name='skipped',
             formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
                     '+ (1|subj) + (1|item)',
@@ -105,11 +101,6 @@ def fit_mlm(name, formula, data, model_family='gaussian'):
     results['formula'] = formula
     results['aic'] = model.AIC
     results.to_csv(save_path / f'{name}_mlm.csv')
-
-
-def remove_nonfatigue(et_measures):
-    et_measures = et_measures.dropna(subset=['fatigue'])
-    return et_measures
 
 
 def remove_skipped_words(et_measures):

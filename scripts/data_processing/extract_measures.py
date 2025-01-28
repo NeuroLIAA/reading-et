@@ -49,7 +49,7 @@ def main(item, data_path, items_path, trials_path, save_path, reprocess):
     else:
         items_wordsfix = utils.get_dirs(data_path)
     chars_mapping = str.maketrans(CHARS_MAP)
-    extract_measures(items_wordsfix, chars_mapping, items_path, trials_path, save_path, reprocess)
+    extract_measures(items_wordsfix, chars_mapping, items_path, save_path, reprocess)
 
 
 def words_measurements(items_measures, save_path):
@@ -64,7 +64,7 @@ def words_measurements(items_measures, save_path):
     return items_measures
 
 
-def extract_measures(items_wordsfix, chars_mapping, items_path, trials_path, save_path, reprocess=False):
+def extract_measures(items_wordsfix, chars_mapping, items_path, save_path, reprocess=False):
     print(f'Extracting eye-tracking measures from trials...')
     items_measures = pd.DataFrame()
     items_scanpaths = {item.name: {} for item in items_wordsfix}
@@ -74,7 +74,7 @@ def extract_measures(items_wordsfix, chars_mapping, items_path, trials_path, sav
         item_measures_path = save_path / 'measures' / item.name
         item_trials = get_trials_to_process(item, item_measures_path, reprocess)
         if item_trials:
-            item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, trials_path, chars_mapping)
+            item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, chars_mapping)
             item_measures = add_aggregated_measures(item_measures)
             item_avg_measures = average_measures(item_measures,
                                                  measures=['FFD', 'SFD', 'FPRT', 'TFD', 'RPD', 'RRT', 'SPRT'],
@@ -88,16 +88,14 @@ def extract_measures(items_wordsfix, chars_mapping, items_path, trials_path, sav
         utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure='FPRT')
 
 
-def extract_item_measures(screens_text, trials, trials_path, chars_mapping):
+def extract_item_measures(screens_text, trials, chars_mapping):
     measures, words_fix = [], []
     for trial in trials:
         trial_df = pd.read_pickle(trial)
-        trial_index = len(measures)
         add_trial_measures(trial_df, screens_text, chars_mapping, measures, words_fix)
-        add_fatigue_score(trial, trials_path, trial_index, measures)
     measures = pd.DataFrame(measures, columns=['subj', 'screen', 'word_idx', 'word', 'sentence_idx', 'sentence_pos',
                                                'screen_pos', 'excluded', 'FFD', 'SFD', 'FPRT', 'RPD', 'TFD', 'RRT',
-                                               'SPRT', 'FC', 'RC', 'fatigue'])
+                                               'SPRT', 'FC', 'RC'])
 
     words_fix = pd.DataFrame(words_fix, columns=['subj', 'fix_idx', 'fix_duration', 'word_idx'])
     words_fix = words_fix.sort_values(['subj', 'fix_idx'])
@@ -133,34 +131,6 @@ def add_trial_measures(trial, screens_text, chars_mapping, measures, words_fix):
             sentence_pos = sentence_pos + 1 if not is_end_of_sentence(word) else 0
             sentence_idx = sentence_idx if not is_end_of_sentence(word) else sentence_idx + 1
             word_idx += 1
-
-
-def add_fatigue_score(trial, trials_path, trial_index, measures):
-    trial_flags = pd.read_pickle(trials_path / trial.stem / trial.parent.name / 'flags.pkl')
-    subj_profile = pd.read_pickle(trials_path / trial.stem / 'profile.pkl')
-    if trial_flags['session'].iloc[0] == 1 and subj_profile['fst_wakeuptime'].iloc[0] != 'NA':
-        wakeuptime = pd.to_datetime(subj_profile['fst_wakeuptime'].iloc[0])
-        sleeptime = pd.to_datetime(subj_profile['fst_sleeptime'].iloc[0])
-    elif trial_flags['session'].iloc[0] == 2 and subj_profile['snd_wakeuptime'].iloc[0] != 'NA':
-        wakeuptime = pd.to_datetime(subj_profile['snd_wakeuptime'].iloc[0])
-        sleeptime = pd.to_datetime(subj_profile['snd_sleeptime'].iloc[0])
-    else:
-        wakeuptime, sleeptime = None, None
-    if not wakeuptime:
-        fatigue_score = None
-    else:
-        sleep_hours = (wakeuptime - sleeptime).seconds / 3600
-        sleep_component = 4 * (5 - sleep_hours) if sleep_hours < 5 else 0
-        vigil_component = 0
-        if wakeuptime:
-            trial_date = pd.to_datetime(trial_flags['date'].iloc[0], dayfirst=True)
-            hours_awake = (trial_date - wakeuptime).seconds / 3600
-            vigil_component = hours_awake - 2 * sleep_hours
-            if vigil_component < 0:
-                vigil_component = 0
-        fatigue_score = sleep_component + vigil_component
-    for i in range(trial_index, len(measures)):
-        measures[i].extend([fatigue_score])
 
 
 def build_scanpaths(words_fix, screens_text, chars_mapping):
