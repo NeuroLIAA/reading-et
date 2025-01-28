@@ -22,7 +22,7 @@ def do_analysis(items_paths, words_freq_file, stats_file, save_path):
     print_stats(et_measures, items_stats, save_path)
 
     et_measures = remove_excluded_words(et_measures)
-    plot_measures(et_measures, save_path)
+    # plot_measures(et_measures, save_path)
     mlm_analysis(log_normalize_durations(et_measures), words_freq)
 
 
