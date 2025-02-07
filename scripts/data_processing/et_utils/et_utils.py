@@ -54,11 +54,11 @@ def parse_asc(filename, verbose=True):
 
             # ===== PARSE EYELINK FILE ===== #
     i_not_start = np.nonzero(line_type != 'START')[0]
-    df_rec_start = pd.read_csv(filename, skiprows=i_not_start, header=None, delim_whitespace=True, usecols=[1],
+    df_rec_start = pd.read_csv(filename, skiprows=i_not_start, header=None, sep='\s+', usecols=[1],
                                low_memory=False)
     df_rec_start.columns = ['tStart']
     i_not_end = np.nonzero(line_type != 'END')[0]
-    df_rec_end = pd.read_csv(filename, skiprows=i_not_end, header=None, delim_whitespace=True, usecols=[1, 5, 6],
+    df_rec_end = pd.read_csv(filename, skiprows=i_not_end, header=None, sep='\s+', usecols=[1, 5, 6],
                              low_memory=False)
     df_rec_end.columns = ['tEnd', 'xRes', 'yRes']
     # combine trial info
@@ -80,13 +80,13 @@ def parse_asc(filename, verbose=True):
 
     # Import Fixations
     i_not_efix = np.nonzero(line_type != 'EFIX')[0]
-    df_fix = pd.read_csv(filename, skiprows=i_not_efix, header=None, delim_whitespace=True, usecols=range(1, 8),
+    df_fix = pd.read_csv(filename, skiprows=i_not_efix, header=None, sep='\s+', usecols=range(1, 8),
                          low_memory=False)
     df_fix.columns = ['eye', 'tStart', 'tEnd', 'duration', 'xAvg', 'yAvg', 'pupilAvg']
 
     # Saccades
     i_not_esacc = np.nonzero(line_type != 'ESACC')[0]
-    df_sacc = pd.read_csv(filename, skiprows=i_not_esacc, header=None, delim_whitespace=True, usecols=range(1, 11),
+    df_sacc = pd.read_csv(filename, skiprows=i_not_esacc, header=None, sep='\s+', usecols=range(1, 11),
                           low_memory=False)
     df_sacc.columns = ['eye', 'tStart', 'tEnd', 'duration', 'xStart', 'yStart', 'xEnd', 'yEnd', 'ampDeg', 'vPeak']
 
@@ -94,7 +94,7 @@ def parse_asc(filename, verbose=True):
     df_blink = pd.DataFrame()
     i_not_eblink = np.nonzero(line_type != 'EBLINK')[0]
     if len(i_not_eblink) < n_lines:
-        df_blink = pd.read_csv(filename, skiprows=i_not_eblink, header=None, delim_whitespace=True, usecols=range(1, 5),
+        df_blink = pd.read_csv(filename, skiprows=i_not_eblink, header=None, sep='\s+', usecols=range(1, 5),
                                low_memory=False)
         df_blink.columns = ['eye', 'tStart', 'tEnd', 'duration']
 
@@ -111,8 +111,8 @@ def parse_asc(filename, verbose=True):
     df_samples = pd.DataFrame()
     if i_start_rec:
         i_not_sample = np.nonzero(np.logical_or(line_type != 'SAMPLE', np.arange(n_lines) < i_start_rec))[0]
-        df_samples = pd.read_csv(filename, skiprows=i_not_sample, header=None, delim_whitespace=True,
-                                 usecols=range(0, len(cols)), low_memory=False)
+        df_samples = pd.read_csv(filename, skiprows=i_not_sample, header=None, sep='\s+', usecols=range(0, len(cols)),
+                                 low_memory=False)
         df_samples.columns = cols
         # Convert values to numbers
         for eye in ['L', 'R']:
