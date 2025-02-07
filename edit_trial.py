@@ -112,6 +112,7 @@ def read_words_associations(questions_file, item, trial_path):
     answers = utils.load_answers(trial_path, filename='words.pkl')
     if len(words) == 0:
         print('No words found for this item')
+        return
     else:
         for i in range(len(words)):
             print(f'{i + 1}. {words[i]}')
@@ -125,6 +126,7 @@ def read_questions_and_answers(questions_file, item, trial_path):
     answers = utils.load_answers(trial_path, filename='answers.pkl')
     if len(questions) == 0:
         print('No questions found for this item')
+        return 0
     else:
         for i in range(len(questions)):
             print(f'{i + 1}. {questions[i]} ({possible_answers[i]})')
