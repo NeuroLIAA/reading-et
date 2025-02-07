@@ -163,9 +163,6 @@ def parse_flags(flags):
             trial_status += '\u274C '
         else:
             trial_status += '\u2705 '
-    wrong_validations = int(flags['firstval_iswrong'][0]) + int(flags['lastval_iswrong'][0])
-    if wrong_validations > 0:
-        trial_status += '\u26A0\uFE0F ' + str(wrong_validations) + ' '
     if flags['wrong_answers'][0]:
         trial_status += '\u2b55 ' + str(flags['wrong_answers'][0]) + ' '
     return trial_status
