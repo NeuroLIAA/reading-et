@@ -156,8 +156,9 @@ def find_besteye(df_msg, default='R'):
     return 'L' if left_error < right_error else 'R'
 
 
-def filter_msgs(df_msg, cutout='validation'):
-    first_index = df_msg.index[df_msg['text'].str.contains(cutout)].tolist()[0]
+def filter_msgs(df_msg, cutout=('validation', 'pseudocalib')):
+    first_index = df_msg.index[(df_msg['text'].str.contains(cutout[0]))
+                               | (df_msg['text'].str.contains(cutout[1]))].tolist()[0]
 
     return df_msg[first_index:]
 

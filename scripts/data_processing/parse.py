@@ -80,9 +80,10 @@ def save_profile(participant_rawpath, save_path):
     DataFrame(profile).to_pickle(save_path / 'profile.pkl')
 
 
-def save_manualvalidation_fixations(et_messages, trial_fix, trial_path, val_legend='validation', num_points=9,
-                                    points_area=56, error_margin=30):
-    val_msgs = et_messages[et_messages['text'].str.contains(val_legend)]
+def save_manualvalidation_fixations(et_messages, trial_fix, trial_path, val_legend=('validation', 'pseudocalib'),
+                                    num_points=9, points_area=56, error_margin=30):
+    val_msgs = et_messages[(et_messages['text'].str.contains(val_legend[0])) |
+                           (et_messages['text'].str.contains(val_legend[1]))]
     fin_msgindex = et_messages[et_messages['text'].str.contains('termina experimento')].index[0]
     first_val = val_msgs.loc[:fin_msgindex]
     last_val = val_msgs.loc[fin_msgindex:]
