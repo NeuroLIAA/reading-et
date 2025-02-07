@@ -66,9 +66,10 @@ def rawdata(raw_path, ascii_path, config_file, stimuli_path, save_path):
 
 def save_profile(participant_rawpath, save_path):
     metafile = loadmat(str(participant_rawpath / 'metadata.mat'), simplify_cells=True)
-    stimuli_order = list(metafile['shuffled_stimuli'][1:].astype(str))
+    stimuli_order = [str(stimuli) for stimuli in metafile['shuffled_stimuli'] if stimuli != 'Test']
+    reading_level = int(metafile['reading_level']) if metafile['reading_level'] != 'NA' else metafile['reading_level']
     profile = {'name': [metafile['subjname']], 'age': [metafile['age']],
-               'reading_level': [int(metafile['reading_level'])],
+               'reading_level': [reading_level],
                'gender': [metafile['gender']], 'n_sessions': [metafile['n_sessions']],
                'fst_date': [metafile['fst_date']], 'snd_date': [metafile['snd_date']],
                'fst_sleeptime': [metafile['fst_sleeptime']], 'snd_sleeptime': [metafile['snd_sleeptime']],
