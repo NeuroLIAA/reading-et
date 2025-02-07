@@ -157,7 +157,6 @@ def find_besteye(df_msg, default='R'):
 
 
 def filter_msgs(df_msg, cutout='validation'):
-    breakpoint()
     first_index = df_msg.index[df_msg['text'].str.contains(cutout)].tolist()[0]
 
     return df_msg[first_index:]
