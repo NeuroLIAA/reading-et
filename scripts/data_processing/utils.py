@@ -89,8 +89,6 @@ def load_questions_and_words(questions_file, item):
             questions = list(item_dict['questions'])
             possible_answers = list(item_dict['possible_answers'])
             words = list(item_dict['words'])
-    if not questions or not words:
-        raise ValueError('Questions/words not found for item', item)
 
     return questions, possible_answers, words
 

@@ -110,20 +110,26 @@ def list_options(options, prompt):
 def read_words_associations(questions_file, item, trial_path):
     _, _, words = utils.load_questions_and_words(questions_file, item)
     answers = utils.load_answers(trial_path, filename='words.pkl')
-    for i in range(len(words)):
-        print(f'{i + 1}. {words[i]}')
-        answer = answers[i] if len(answers) > i else ''
-        print(f'      {answer}')
+    if len(words) == 0:
+        print('No words found for this item')
+    else:
+        for i in range(len(words)):
+            print(f'{i + 1}. {words[i]}')
+            answer = answers[i] if len(answers) > i else ''
+            print(f'      {answer}')
     input('Press enter to continue...')
 
 
 def read_questions_and_answers(questions_file, item, trial_path):
     questions, possible_answers, _ = utils.load_questions_and_words(questions_file, item)
     answers = utils.load_answers(trial_path, filename='answers.pkl')
-    for i in range(len(questions)):
-        print(f'{i + 1}. {questions[i]} ({possible_answers[i]})')
-        answer = answers[i] if len(answers) > i else ''
-        print(f'      {answer}')
+    if len(questions) == 0:
+        print('No questions found for this item')
+    else:
+        for i in range(len(questions)):
+            print(f'{i + 1}. {questions[i]} ({possible_answers[i]})')
+            answer = answers[i] if len(answers) > i else ''
+            print(f'      {answer}')
 
     wrong_answers = input('Number of wrong answers: ')
     while not wrong_answers.isdigit() or int(wrong_answers) < 0 or int(wrong_answers) > len(questions):
