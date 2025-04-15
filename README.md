@@ -1,5 +1,7 @@
 # Eye-tracking during natural reading
 ![Example trial](preview.jpg)
+## Download link
+The dataset is now available in [Figshare](https://figshare.com/articles/dataset/Eye-tracking_during_natural_reading_of_short_stories_in_Spanish/28311908)!
 ## About
 Eye-tracking is a well-established methodology to study reading. Our gaze jumps from word to word, sampling information from the text almost sequentially. Thus, the time spent on each word, or which words are skipped or revisited, provides proxies to different cognitive processes. However, few studies have focused on Spanish, where data are scarce, and little is known on how these findings translate to other languages. We present the largest publicly available Spanish eye-tracking dataset to date, comprising readings from 76 native speakers (mean age 23.5; 44 females, 31 males, one unspecified) who read 20 self-contained short stories (800 ± 135 words) across two sessions, with each story read by approximately 50 participants. This comprehensive dataset presents opportunities to investigate eye movements during reading and its related cognitive processes, Spanish linguistics, and their applications in computational algorithms.
 ## Definitions
