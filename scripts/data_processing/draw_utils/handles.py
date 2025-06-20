@@ -16,14 +16,33 @@ def advance_sequence(event, state, screens, screens_sequence, sequence_states, a
         drawing.update_figure(state, fig, ax, screens, sequence_states, editable)
 
 
-def onclick(event, circles, arrows, fig, ax, last_actions, df_fix, lines_coords, hlines):
+def onclick(event, circles, arrows, fig, ax, last_actions, df_fix, lines_coords, hlines, buttons=None):
     if event.button == 1:
+        # Check if a button was clicked first
+        if buttons and handle_button_click(event, buttons, hlines, lines_coords, fig):
+            return
         handle_click(event, hlines, circles, last_actions)
     elif event.button == 2:
         remove_fixation(event, circles, arrows, ax, last_actions, df_fix)
     elif event.button == 3:
         undo_lastaction(last_actions, circles, arrows, ax, lines_coords, df_fix)
     fig.canvas.draw()
+
+
+def handle_button_click(event, buttons, hlines, lines_coords, fig):
+    """Handle clicks on arrow buttons"""
+    for button in buttons:
+        if button.contains(event):
+            offset = button.get_offset()
+            drawing.move_horizontal_lines(hlines, lines_coords, offset)
+            # Add visual feedback by briefly changing button appearance
+            original_alpha = button.circle.get_alpha()
+            button.circle.set_alpha(1.0)
+            fig.canvas.draw()
+            # Reset alpha after a brief moment (this happens immediately in practice)
+            button.circle.set_alpha(original_alpha)
+            return True
+    return False
 
 
 def handle_click(event, hlines, circles, last_actions):
