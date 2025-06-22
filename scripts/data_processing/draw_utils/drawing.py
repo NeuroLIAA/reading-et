@@ -14,7 +14,7 @@ def update_figure(state, fig, ax, screens, sequence_states, editable):
         sequence_states[current_seqid]['fixations'], \
         sequence_states[current_seqid]['lines']
     state['cids'] = draw_scanpath(screens[screenid], fixations, fig, ax,
-                                  title=f'Screen {screenid}',
+                                  title=f'Screen {screenid}/{len(screens)}',
                                   lines_coords=lines,
                                   editable=editable)
 
@@ -66,9 +66,8 @@ def draw_buttons(ax, img_shape, button_size=20):
                                    edgecolor='blue',
                                    linewidth=1.0)
     ax.add_patch(up_circle)
-    up_annotation = plt.annotate("▲", xy=(button_x, up_button_y), fontsize=20, ha="center",
-                                 va="center", color='blue', alpha=0.7)
-    up_button = ArrowButton(0, up_circle, up_annotation, 'up')
+    plt.annotate("▲", xy=(button_x, up_button_y), fontsize=20, ha="center", va="center", color='blue', alpha=0.7)
+    up_button = ArrowButton(0, up_circle, 'up')
     buttons.append(up_button)
     down_circle = mpl.patches.Circle((button_x, down_button_y),
                                      radius=button_size,
@@ -76,9 +75,8 @@ def draw_buttons(ax, img_shape, button_size=20):
                                      edgecolor='red',
                                      linewidth=1.0)
     ax.add_patch(down_circle)
-    down_annotation = plt.annotate("▼", xy=(button_x, down_button_y), fontsize=20, ha="center",
-                                   va="center", color='red', alpha=0.7)
-    down_button = ArrowButton(1, down_circle, down_annotation, 'down')
+    plt.annotate("▼", xy=(button_x, down_button_y), fontsize=20, ha="center", va="center", color='red', alpha=0.7)
+    down_button = ArrowButton(1, down_circle, 'down')
     buttons.append(down_button)
 
     return buttons
@@ -127,16 +125,12 @@ def draw_arrow(ax, p1, p2, color, alpha=0.2, width=0.05):
     return arrow
 
 
-def move_horizontal_lines(hlines, lines_coords, offset):
-    if lines_coords is None or len(lines_coords) <= 1:
-        return
-
-    for i in range(1, len(lines_coords)):
-        lines_coords[i] += offset
-
-    for i in range(1, len(hlines)):
-        current_y = hlines[i].line.get_ydata()[0]
-        hlines[i].line.set_ydata([current_y + offset, current_y + offset])
+def move_horizontal_lines(hlines, lines_coords, offset, direction):
+    span = range(1, len(lines_coords)) if direction == 'down' else range(len(lines_coords) - 1)
+    for i in span:
+        current_y = hlines[i].get_y()
+        hlines[i].update_coords(hlines[i].line.get_xdata()[0], current_y + offset)
+        lines_coords[i] = hlines[i].get_y()
 
 
 def screen(points=[], point_size=14, height=1080, width=1920, color='grey'):
