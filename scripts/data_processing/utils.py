@@ -209,8 +209,12 @@ def load_stimuli(item, stimuli_path, config_file=None):
         raise ValueError('stimuli file does not exist: ' + str(stimuli_file))
     stimuli = load_matfile(str(stimuli_file))
     if config_file:
-        config = load_matfile(str(config_file))['config']
-        stimuli['config'] = config
+        config = load_matfile(str(config_file))
+        short_stimuli_list = [stimuli_name.strip() for stimuli_name in config['short_stimuli']]
+        if item in short_stimuli_list:
+            stimuli['config'] = config['short_config']
+        else:
+            stimuli['config'] = config['long_config']
 
     return stimuli
 
