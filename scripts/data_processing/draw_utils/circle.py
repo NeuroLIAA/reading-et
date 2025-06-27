@@ -24,8 +24,8 @@ class FixCircle:
         df_fix.loc[self.fix_name(), ['xAvg', 'yAvg']] = self.center()
 
     def update_coords(self, x, y):
-        self.circle.center = x, y
-        self.ann.set_position((x, y))
+        self.circle.center = self.circle.center[0], y
+        self.ann.set_position((self.circle.center[0], y))
 
     def remove(self, circles, df_fix):
         circles.pop(self.id)
