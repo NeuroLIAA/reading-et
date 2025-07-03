@@ -73,7 +73,7 @@ def mlm_analysis(et_measures, words_freq):
         et_measures[fixed_effect] = et_measures[fixed_effect] - et_measures[fixed_effect].mean()
 
     fit_mlm(name='skipped',
-            formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
+            formula='skipped ~ word_len * word_freq + word_idx + screen_pos '
                     '+ (1|subj) + (1|item)',
             data=et_measures,
             model_family='binomial')
@@ -81,7 +81,7 @@ def mlm_analysis(et_measures, words_freq):
     et_measures = remove_skipped_words(et_measures)
     models = [
         ('FFD',
-         'FFD ~ word_len * word_freq + sentence_pos +  word_idx + screen_pos + (1|subj) + (1|item)'),
+         'FFD ~ word_len * word_freq + word_idx + (1|subj) + (1|item)'),
         ('FPRT',
          'FPRT ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
          '+ (1|subj) + (1|item)')
