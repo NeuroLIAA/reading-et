@@ -1,6 +1,7 @@
-from .circle import FixCircle
-from .line import HLine
-from .handles import onclick, move_object, release_object
+from scripts.data_processing.draw_utils.button import ArrowButton
+from scripts.data_processing.draw_utils.circle import FixCircle
+from scripts.data_processing.draw_utils.line import HLine
+from scripts.data_processing.draw_utils.handles import onclick, move_object, release_object
 from PIL import Image, ImageDraw
 import numpy as np
 import matplotlib as mpl
@@ -13,7 +14,7 @@ def update_figure(state, fig, ax, screens, sequence_states, editable):
         sequence_states[current_seqid]['fixations'], \
         sequence_states[current_seqid]['lines']
     state['cids'] = draw_scanpath(screens[screenid], fixations, fig, ax,
-                                  title=f'Screen {screenid}',
+                                  title=f'Screen {screenid}/{len(screens)}',
                                   lines_coords=lines,
                                   editable=editable)
 
@@ -32,13 +33,14 @@ def draw_scanpath(img, df_fix, fig, ax, ann_size=8, fix_size=15, min_t=250, titl
     circles = draw_circles(ax, xs, ys, ts, df_fix, min_t, fix_size, ann_size)
     arrows = draw_arrows(ax, circles)
     hlines = draw_hlines(ax, lines_coords)
+    buttons = draw_buttons(ax, img.shape) if editable else []
 
     cids = []
     if editable:
         last_actions = []
         cids.append(fig.canvas.mpl_connect('button_press_event',
                                            lambda event: onclick(event, circles, arrows, fig, ax, last_actions,
-                                                                 df_fix, lines_coords, hlines)))
+                                                                 df_fix, lines_coords, hlines, buttons)))
         cids.append(fig.canvas.mpl_connect('motion_notify_event',
                                            lambda event: move_object(event, ax, arrows, circles, last_actions)))
         cids.append(fig.canvas.mpl_connect('button_release_event',
@@ -48,6 +50,36 @@ def draw_scanpath(img, df_fix, fig, ax, ann_size=8, fix_size=15, min_t=250, titl
     fig.canvas.draw()
 
     return cids
+
+
+def draw_buttons(ax, img_shape, button_size=20):
+    """Draw arrow buttons similar to how circles are drawn"""
+    height, width = img_shape[:2]
+    button_x = width - 30
+    up_button_y = height * 0.4
+    down_button_y = height * 0.6
+
+    buttons = []
+    up_circle = mpl.patches.Circle((button_x, up_button_y),
+                                   radius=button_size,
+                                   alpha=0.7,
+                                   edgecolor='blue',
+                                   linewidth=1.0)
+    ax.add_patch(up_circle)
+    plt.annotate("▲", xy=(button_x, up_button_y), fontsize=20, ha="center", va="center", color='blue', alpha=0.7)
+    up_button = ArrowButton(0, up_circle, 'up')
+    buttons.append(up_button)
+    down_circle = mpl.patches.Circle((button_x, down_button_y),
+                                     radius=button_size,
+                                     alpha=0.7,
+                                     edgecolor='red',
+                                     linewidth=1.0)
+    ax.add_patch(down_circle)
+    plt.annotate("▼", xy=(button_x, down_button_y), fontsize=20, ha="center", va="center", color='red', alpha=0.7)
+    down_button = ArrowButton(1, down_circle, 'down')
+    buttons.append(down_button)
+
+    return buttons
 
 
 def draw_circles(ax, xs, ys, ts, df_fix, min_t, fix_size, ann_size):
@@ -91,6 +123,14 @@ def draw_arrow(ax, p1, p2, color, alpha=0.2, width=0.05):
     arrow = mpl.patches.Arrow(x1, y1, x2 - x1, y2 - y1, width=width, color=color, alpha=alpha)
     ax.add_patch(arrow)
     return arrow
+
+
+def move_horizontal_lines(hlines, lines_coords, offset, direction):
+    span = range(1, len(lines_coords)) if direction == 'down' else range(len(lines_coords) - 1)
+    for i in span:
+        current_y = hlines[i].get_y()
+        hlines[i].update_coords(hlines[i].line.get_xdata()[0], current_y + offset)
+        lines_coords[i] = hlines[i].get_y()
 
 
 def screen(points=[], point_size=14, height=1080, width=1920, color='grey'):

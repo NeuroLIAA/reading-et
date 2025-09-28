@@ -1,7 +1,10 @@
 # Eye-tracking during natural reading
 ![Example trial](preview.jpg)
+## Download link
+The dataset is now available in [Figshare](https://figshare.com/articles/dataset/Eye-tracking_during_natural_reading_of_short_stories_in_Spanish/28311908)!
 ## About
-Eye-tracking is a well-established methodology to study reading. Our gaze jumps from word to word, sampling information from the text almost sequentially. Thus, the time spent on each word, or which words are skipped or revisited, provides proxies to different cognitive processes. However, few studies have focused on Spanish, where data are scarce, and little is known on how these findings translate to other languages. We present the largest publicly available Spanish eye-tracking dataset to date, comprising readings from 76 native speakers (mean age 23.5; 44 females, 31 males, one unspecified) who read 20 self-contained short stories (800 ± 135 words) across two sessions, with each story read by approximately 50 participants. This comprehensive dataset presents opportunities to investigate eye movements during reading and its related cognitive processes, Spanish linguistics, and their applications in computational algorithms.
+Eye-tracking is a well-established methodology to study reading processes. Our gaze jumps from word to word, sampling information from text almost sequentially. The time spent on each word, along with patterns of skipping or revisiting, provides proxies for different cognitive processes during comprehension. However, few studies have focused on Spanish, where empirical data remain scarce, and little is known about how findings from other languages translate to Spanish reading behavior. We present the largest publicly available Spanish eye-tracking dataset to date, comprising readings of self-contained stories from 113 native speakers (mean age 23.8; 61 females, 52 males). The dataset includes both long stories (3300 ± 747 words, 11 participants per item on average) and short stories (795 ± 135 words, 50 participants per item on average), providing extensive coverage of natural reading scenarios. This comprehensive resource offers valuable opportunities to investigate eye movement patterns during Spanish reading, explore language-specific cognitive processes, examine Spanish linguistic phenomena, and develop computational algorithms for reading research and natural language processing applications.
+
 ## Definitions
 A *word* is defined as a sequence of characters between two blank spaces, except those characters that correspond to punctuation signs.
  - *Unfrequent word*: its number of appearances in the latinamerican subtitles database from [EsPal](https://www.bcbl.eu/databases/espal/) is less or equal to 100.
@@ -11,9 +14,8 @@ A *word* is defined as a sequence of characters between two blank spaces, except
  - *Unfrequent characters*: ¿; ?; ¡; !; “; ”; —; «; (; ).
 
 ## Corpus
-The corpus is composed of 20 short stories (*items*), all written in Spanish as spoken in Buenos Aires. Most of them (15) were extracted from “100 covers de cuentos clásicos”, by Hernán Casciari. The original stories were written by several different authors and were subsequently simplified, translated (if needed) and re-written in Spanish by Casciari. This way, there is diversity in literary style, while maintaining both difficulty and slang constant.
+Twenty and ten self-contained short (avg. 795 (± 135), min. 680, max. 1220 words) and long (avg. 3300 (± 147), min. 1975, max. 4640 words) stories written in Latin American Spanish were selected. From the twenty short stories, five were extracted from online Argentinian blog posts, and the other fifteen were extracted from “100 covers de cuentos clásicos” (Casciari, 2021). These constitute classic stories that were simplified, translated (if needed) and re-written in Spanish by Hernán Casciari. The goal was to obtain diversity in literary style while maintaining both difficulty and slang constant. The long stories were extracted from diverse sources and were selected mainly due to their use in other eye-tracking during reading experiments.
 
-On average, these are 800 (+/- 135) words long (min: 680; max: 1220) and each one takes 3 minutes to read (60 minutes total).
 ### Selection criteria
 - Minimize dialogue.
 - Minimize short and long sentences.
@@ -25,8 +27,8 @@ On average, these are 800 (+/- 135) words long (min: 680; max: 1220) and each on
 
 There is a correlation between *minimizing dialogues* and *minimizing unfrequent characters*, as dialogues are usually characterized by such.
 ## Methodology
-* Stimuli creation (see ```metadata/stimuli_config.mat```):
-    * Resolution: 1080x1920.
+* Stimuli creation for the short stories (see ```metadata/stimuli_config.mat```):
+    * Resolution: 1080x1920
     * Font: Courier New. Size: 24. Color: black.
     * Background color: grey.
     * Linespacing: 55px.
@@ -34,15 +36,20 @@ There is a correlation between *minimizing dialogues* and *minimizing unfrequent
     * Max chars per line: 99.
     * Left margin: 280px.
     * Top margin: 185px.
+* Stimuli creation for the long stories:
+    * Resolution: 768x1020
+    * Font: Courier New. Size: 18. Color: black.
+    * Background color: grey.
+    * Linespacing: 50px.
+    * Max lines per screen: 10.
+    * Max chars per line: 99.
+    * Left margin: 150px.
+    * Top margin: 120px.
 * The participant is told that, after reading each text, he/she will be evaluated with three comprehensive questions.
-* Their reading skills are also inquired.
-* Items are ordered according to their number of unfrequent words and characters, and short and long sentences.
-    * They are subsequently divided in four splits, and presented randomly within each split.
-* Following this order, two sessions are made, each consisting of ten stories.
-    * The stories in the first session have 769 words on average (+/- 37; min: 713; max: 843).
-    * The stories in the second session have 822 words on average (+/- 183; min: 680; max: 1221).
+* Their reading skills are also inquired (short-stories only).
+* Items are ordered pseudo-randomly for each participant, ensuring a similar number of trials per story.
 * Once an item has been read, comprehension questions are answered.
-* Additionally, unique common nouns are displayed (one by one) and the participant is asked to write the first word that comes to mind.
+* Additionally, unique common nouns are displayed (one by one) and the participant is asked to write the first word that comes to mind (short-stories only).
 * The following item is displayed by pressing a button.
 * Each item is a *block*. After each block, a one-minute break and eye-tracker calibration follows.
 * Eye-tracker calibration is validated by the presentation of points positioned in the corners of where stimuli is displayed.

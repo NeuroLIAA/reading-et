@@ -57,6 +57,13 @@ def plot_measures(et_measures, save_path):
 
 
 def mlm_analysis(et_measures, words_freq):
+    # Si no hay suficientes niveles para efectos aleatorios, salteamos MLM
+    n_subj = et_measures['subj'].nunique()
+    n_item = et_measures['item'].nunique()
+    if n_subj < 2 or n_item < 2:
+        print(f"[INFO] MLM salteado: se necesitan >=2 sujetos e >=2 ítems (hay subj={n_subj}, item={n_item}).")
+        return
+
     et_measures['word_len'] = et_measures['word'].apply(lambda x: 1 / len(x) if x else 0)
     et_measures['word_freq'] = et_measures['word'].apply(lambda x:
                                                          log(words_freq.loc[words_freq['word'] == x, 'cnt'].values[0])
@@ -73,7 +80,7 @@ def mlm_analysis(et_measures, words_freq):
         et_measures[fixed_effect] = et_measures[fixed_effect] - et_measures[fixed_effect].mean()
 
     fit_mlm(name='skipped',
-            formula='skipped ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
+            formula='skipped ~ word_len * word_freq + word_idx + screen_pos '
                     '+ (1|subj) + (1|item)',
             data=et_measures,
             model_family='binomial')
@@ -81,7 +88,7 @@ def mlm_analysis(et_measures, words_freq):
     et_measures = remove_skipped_words(et_measures)
     models = [
         ('FFD',
-         'FFD ~ word_len * word_freq + sentence_pos +  word_idx + screen_pos + (1|subj) + (1|item)'),
+         'FFD ~ word_len * word_freq + word_idx + (1|subj) + (1|item)'),
         ('FPRT',
          'FPRT ~ word_len * word_freq + sentence_pos + sentence_pos_squared + word_idx + screen_pos '
          '+ (1|subj) + (1|item)')

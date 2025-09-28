@@ -32,7 +32,9 @@ def flag_and_order_participants(raw_path, processed_path, participants):
             processed_trials = [dir_.name for dir_ in utils.get_dirs(processed_trials_path)]
             trials_flags = utils.load_flags(processed_trials, processed_trials_path)
             edited_trials = [trials_flags[trial]['edited'] for trial in trials_flags]
-            all_edited = np.all(edited_trials) and len(edited_trials) == len(utils.get_files(raw_trials_path)) - 2
+            all_trials = [trial.stem for trial in utils.get_files(raw_trials_path, extension='mat')
+                          if trial.stem != 'Test' and trial.stem != 'metadata']
+            all_edited = np.all(edited_trials) and len(edited_trials) == len(all_trials)
             if all_edited:
                 participants[i] += ' \u2705'
 

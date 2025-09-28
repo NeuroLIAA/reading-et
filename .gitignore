@@ -16,3 +16,8 @@ results/scanpaths
 
 # pycharm
 .idea
+
+tesis/*
+data/*
+metadata/*
+stimuli/*

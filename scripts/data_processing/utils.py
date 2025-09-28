@@ -209,8 +209,12 @@ def load_stimuli(item, stimuli_path, config_file=None):
         raise ValueError('stimuli file does not exist: ' + str(stimuli_file))
     stimuli = load_matfile(str(stimuli_file))
     if config_file:
-        config = load_matfile(str(config_file))['config']
-        stimuli['config'] = config
+        config = load_matfile(str(config_file))
+        short_stimuli_list = [stimuli_name.strip() for stimuli_name in config['short_stimuli']]
+        if item in short_stimuli_list:
+            stimuli['config'] = config['short_config']
+        else:
+            stimuli['config'] = config['long_config']
 
     return stimuli
 
@@ -313,18 +317,60 @@ def get_scanpath_string(scanpath):
     return subj_scanpath
 
 
+# def average_measures(item_measures, measures, n_bins):
+#     subjects_measures = []
+#     for subj in item_measures['subj'].unique():
+#         subj_measures = item_measures[item_measures['subj'] == subj]
+#         for measure in measures:
+#             measure_mask = subj_measures[measure] != 0
+#             binarized = pd.qcut(subj_measures[measure][measure_mask], n_bins, labels=[j for j in range(1, n_bins + 1)])
+#             subj_measures.loc[binarized.index, measure] = binarized.astype(int)
+#         subjects_measures.append(subj_measures)
+#     subjects_measures_df = pd.concat(subjects_measures)
+#     all_measures = measures + ['FC', 'RC', 'LS', 'RR']
+#     averaged_measures = subjects_measures_df[['word_idx'] + all_measures].groupby(['word_idx']).mean()
+#     averaged_measures['word'] = subjects_measures_df.loc[averaged_measures.index, 'word']
+#     averaged_measures['excluded'] = subjects_measures_df.loc[averaged_measures.index, 'excluded']
+#     return averaged_measures
+
 def average_measures(item_measures, measures, n_bins):
     subjects_measures = []
     for subj in item_measures['subj'].unique():
         subj_measures = item_measures[item_measures['subj'] == subj]
         for measure in measures:
             measure_mask = subj_measures[measure] != 0
-            binarized = pd.qcut(subj_measures[measure][measure_mask], n_bins, labels=[j for j in range(1, n_bins + 1)])
+            vals = subj_measures.loc[measure_mask, measure].dropna()
+
+            # Si hay 0 o 1 valor único, no se puede cortar en cuantiles:
+            u = vals.nunique()
+            if u < 2 or len(vals) < 2:
+                # asigna a una única clase
+                binarized = pd.Series(
+                    pd.Categorical([1] * len(vals), categories=[1]),
+                    index=vals.index
+                )
+            else:
+                # pide hasta q_eff bins, pero deja que qcut 'droppee' duplicados
+                q_eff = min(n_bins, max(u - 1, 1))
+                tmp = pd.qcut(vals, q=q_eff, duplicates='drop')  # sin labels
+
+                # número real de bins que quedaron
+                k = tmp.cat.categories.size
+                # renombrá categorías a 1..k
+                tmp = tmp.cat.rename_categories(range(1, k + 1))
+                binarized = tmp
+
             subj_measures.loc[binarized.index, measure] = binarized.astype(int)
+
         subjects_measures.append(subj_measures)
+
     subjects_measures_df = pd.concat(subjects_measures)
     all_measures = measures + ['FC', 'RC', 'LS', 'RR']
-    averaged_measures = subjects_measures_df[['word_idx'] + all_measures].groupby(['word_idx']).mean()
+    averaged_measures = (
+        subjects_measures_df[['word_idx'] + all_measures]
+        .groupby(['word_idx'])
+        .mean()
+    )
     averaged_measures['word'] = subjects_measures_df.loc[averaged_measures.index, 'word']
     averaged_measures['excluded'] = subjects_measures_df.loc[averaged_measures.index, 'excluded']
     return averaged_measures
