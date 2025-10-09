@@ -42,6 +42,8 @@ def process_subj_trial(subj_name, trial_path, screen_sequence, screens_lines, it
         word_pos = 0
         for line_num, line in enumerate(screens_lines[screen_id]):
             words, spaces_pos = line['text'].split(), line['spaces_pos']
+            if line['text'][:3] == '   ':
+                spaces_pos = spaces_pos[3:]
             line_fix = get_line_fixations(fixations, line_num, lines_pos)
             assign_line_fixations_to_words(word_pos, line_fix, line_num, spaces_pos,
                                            screen_id, subj_name, trial_fix_by_word)
