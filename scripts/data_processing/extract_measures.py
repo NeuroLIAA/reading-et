@@ -85,7 +85,7 @@ def extract_measures(items_wordsfix, chars_mapping, items_path, save_path, repro
 
     if not items_measures.empty:
         words_avg_measures = words_measurements(items_measures, save_path)
-        utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure='FPRT')
+        utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure=None)
 
 
 def extract_item_measures(screens_text, trials, chars_mapping):
