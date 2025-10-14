@@ -4,21 +4,31 @@ from scripts.data_processing import utils
 import pandas as pd
 import numpy as np
 import argparse
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+
+def process_single_item(item, subjects, reprocess, save_path):
+    item_name = item.stem
+    screens_lines = utils.load_lines_by_screen(item)
+    item_savepath = save_path / item_name
+    item_savepath.mkdir(exist_ok=True, parents=True)
+    item_subjects = get_subjects_to_process(subjects, item_name, item_savepath, reprocess)
+    item_stats = {'n_subj': 0, 'n_fix': 0, 'n_words': 0, 'out_of_bounds': 0, 'return_sweeps': 0}
+    if item_subjects:
+        process_item(item_name, item_subjects, screens_lines, item_stats, item_savepath)
+    return item_name, item_stats
 
 
 def assign_fixations_to_words(items, subjects, save_path, reprocess=False):
     print('Assigning fixations to words...')
-    items_stats = {item.stem: {'n_subj': 0, 'n_fix': 0, 'n_words': 0, 'out_of_bounds': 0, 'return_sweeps': 0}
-                   for item in items}
-    for item in (pbar := tqdm(items)):
-        item_name = item.stem
-        pbar.set_description(f'Processing "{item_name}" trials')
-        screens_lines = utils.load_lines_by_screen(item)
-        item_savepath = save_path / item_name
-        item_savepath.mkdir(exist_ok=True, parents=True)
-        item_subjects = get_subjects_to_process(subjects, item_name, item_savepath, reprocess)
+    items_stats = {}
 
-        process_item(item_name, item_subjects, screens_lines, items_stats[item_name], item_savepath)
+    with ProcessPoolExecutor() as executor:
+        futures = {executor.submit(process_single_item, item, subjects, reprocess, save_path):
+                       item for item in items}
+        for future in tqdm(as_completed(futures), total=len(items), desc='Processing items in parallel'):
+            item_name, item_stats = future.result()
+            items_stats[item_name] = item_stats
     save_stats(items_stats, save_path)
 
 
