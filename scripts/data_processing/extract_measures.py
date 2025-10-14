@@ -5,6 +5,7 @@ from scripts.data_processing.utils import average_measures
 from tqdm import tqdm
 import argparse
 import pandas as pd
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 PUNCTUATION_MARKS = ['?', '!', '.']
 WEIRD_CHARS = ['¿', '?', '¡', '!', '.', '−', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
@@ -64,24 +65,35 @@ def words_measurements(items_measures, save_path):
     return items_measures
 
 
+def process_single_item(item, items_path, chars_mapping, reprocess, save_path):
+    screens_text = utils.load_lines_text_by_screen(item.stem, items_path)
+    item_measures_path = save_path / 'measures' / item.name
+    item_trials = get_trials_to_process(item, item_measures_path, reprocess)
+    if item_trials:
+        item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, chars_mapping)
+        item_measures = add_aggregated_measures(item_measures)
+        item_avg_measures = average_measures(item_measures,
+                                             measures=['FFD', 'SFD', 'FPRT', 'TFD', 'RPD', 'RRT', 'SPRT'],
+                                             n_bins=10)
+        utils.save_measures_by_subj(item_measures, item_measures_path)
+        return item.name, item_avg_measures, item_scanpaths
+    else:
+        return item.name, None, None
+
+
 def extract_measures(items_wordsfix, chars_mapping, items_path, save_path, reprocess=False):
     print(f'Extracting eye-tracking measures from trials...')
     items_measures = pd.DataFrame()
     items_scanpaths = {item.name: {} for item in items_wordsfix}
-    for item in (pbar := tqdm(items_wordsfix)):
-        pbar.set_description(f'Processing "{item.stem}" trials')
-        screens_text = utils.load_lines_text_by_screen(item.stem, items_path)
-        item_measures_path = save_path / 'measures' / item.name
-        item_trials = get_trials_to_process(item, item_measures_path, reprocess)
-        if item_trials:
-            item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, chars_mapping)
-            item_measures = add_aggregated_measures(item_measures)
-            item_avg_measures = average_measures(item_measures,
-                                                 measures=['FFD', 'SFD', 'FPRT', 'TFD', 'RPD', 'RRT', 'SPRT'],
-                                                 n_bins=10)
-            items_measures = pd.concat([items_measures, item_avg_measures], ignore_index=True)
-            items_scanpaths[item.name] = item_scanpaths
-            utils.save_measures_by_subj(item_measures, item_measures_path)
+
+    with ProcessPoolExecutor() as executor:
+        futures = {executor.submit(process_single_item, item, items_path, chars_mapping, reprocess, save_path):
+                       item for item in items_wordsfix}
+        for future in tqdm(as_completed(futures), total=len(items_wordsfix), desc='Processing items in parallel'):
+            item_name, item_avg_measures, item_scanpaths = future.result()
+            if item_avg_measures is not None:
+                items_measures = pd.concat([items_measures, item_avg_measures], ignore_index=True)
+                items_scanpaths[item_name] = item_scanpaths
 
     if not items_measures.empty:
         words_avg_measures = words_measurements(items_measures, save_path)
