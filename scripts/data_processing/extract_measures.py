@@ -53,12 +53,12 @@ def main(item, data_path, items_path, trials_path, save_path, reprocess):
     extract_measures(items_wordsfix, chars_mapping, items_path, save_path, reprocess)
 
 
-def words_measurements(items_measures, save_path):
+def words_measures(items_measures, save_path):
     excluded_words = items_measures[items_measures['excluded']]
     items_measures = items_measures[~items_measures['excluded']]
     items_measures = items_measures.drop(columns=['excluded'])
     items_measures = items_measures.groupby(['word']).mean().round(2)
-    items_measures.to_pickle(save_path / 'words_measurements.pkl')
+    items_measures.to_csv(save_path / 'words_measures.csv')
     missing_words = set(excluded_words['word']) - set(items_measures.index)
     missing_words_df = pd.DataFrame(0, index=list(missing_words), columns=items_measures.columns)
     items_measures = pd.concat([items_measures, missing_words_df])
@@ -96,7 +96,7 @@ def extract_measures(items_wordsfix, chars_mapping, items_path, save_path, repro
                 items_scanpaths[item_name] = item_scanpaths
 
     if not items_measures.empty:
-        words_avg_measures = words_measurements(items_measures, save_path)
+        words_avg_measures = words_measures(items_measures, save_path)
         utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure=None)
 
 

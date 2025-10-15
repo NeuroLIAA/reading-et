@@ -133,7 +133,8 @@ def save_trial(screens_fixations, screens_lines, del_seqindices, item_path):
     for screen_id in screens_fixations:
         screen_fixations, screen_lines = screens_fixations[screen_id], screens_lines[screen_id]
         screen_path = get_screenpath(screen_id, item_path)
-        if screen_path.exists(): shutil.rmtree(screen_path)
+        if screen_path.exists():
+            shutil.rmtree(screen_path)
         screen_path.mkdir()
 
         screenfix_filename = fix_filename
