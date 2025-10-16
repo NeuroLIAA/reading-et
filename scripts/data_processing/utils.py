@@ -328,6 +328,10 @@ def average_measures(item_measures, measures, n_bins):
             subj_measures.loc[binarized.index, measure] = binarized.astype(int)
         subjects_measures.append(subj_measures)
     subjects_measures_df = pd.concat(subjects_measures)
+    # sanity checks: each word_idx corresponds to the same word and each subject has all word_idx
+    assert all(subjects_measures_df.groupby('word_idx')['word'].nunique() == 1)
+    assert all(subjects_measures_df.groupby('subj')['word_idx'].nunique() ==
+               subjects_measures_df['word_idx'].nunique())
     all_measures = measures + ['FC', 'RC', 'LS', 'RR']
     averaged_measures = subjects_measures_df[['word_idx'] + all_measures].groupby(['word_idx']).mean()
     averaged_measures['word'] = subjects_measures_df.loc[averaged_measures.index, 'word']
