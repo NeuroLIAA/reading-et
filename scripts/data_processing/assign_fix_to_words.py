@@ -131,12 +131,12 @@ def save_stats(items_stats, save_path):
 
 def postprocess_word_fixations(trial_fix_by_word, item_stats):
     prev_nfix = n_fix(trial_fix_by_word)
-    trial_fix_by_word = trial_fix_by_word.groupby(['screen', 'line'], group_keys=False) \
-        .apply(remove_return_sweeps_from_line)
+    trial_fix_by_word = (trial_fix_by_word.groupby(['screen', 'line'], group_keys=False)[trial_fix_by_word.columns]
+                         .apply(remove_return_sweeps_from_line))
     item_stats['return_sweeps'] += prev_nfix - n_fix(trial_fix_by_word)
 
-    trial_fix_by_word = trial_fix_by_word.groupby(['screen', 'word_pos'], group_keys=False) \
-        .apply(remove_na_from_fixated_words)
+    trial_fix_by_word = (trial_fix_by_word.groupby(['screen', 'word_pos'], group_keys=False)[trial_fix_by_word.columns]
+                         .apply(remove_na_from_fixated_words))
     trial_fix_by_word = make_screen_fix_consecutive(trial_fix_by_word)
     trial_fix_by_word = cast_to_int(trial_fix_by_word)
     trial_fix_by_word = trial_fix_by_word.sort_values(['screen', 'line', 'word_pos', 'screen_fix'])
