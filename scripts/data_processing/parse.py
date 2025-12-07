@@ -35,7 +35,7 @@ def item(item, participant_path, ascii_path, config_file, stimuli_path, save_pat
 
     flags = {'edited': False, 'firstval_iswrong': not manualval_results[0],
              'lastval_iswrong': not manualval_results[1], 'wrong_answers': 0, 'iswrong': False,
-             'session': item_session}
+             'session': item_session, 'shift_x': 0}
     utils.save_structs(et_messages,
                        screen_sequence,
                        DataFrame(trial_metadata['questions_answers']),
