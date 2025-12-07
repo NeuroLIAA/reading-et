@@ -1,4 +1,4 @@
-function exit_status = run_trial(subjname, stimuli_index, stimuli_order, stimuli_questions, stimuli_config, save_path, use_eyetracker)
+function exit_status = run_trial(subjname, n_session, stimuli_index, stimuli_order, stimuli_questions, stimuli_config, save_path, use_eyetracker)
     % Constants
     STIMULI_PATH = 'stimuli';
     KbName('UnifyKeyNames')
@@ -53,6 +53,7 @@ function exit_status = run_trial(subjname, stimuli_index, stimuli_order, stimuli
         trial = struct();
         trial.subjname      = subjname;
         trial.stimuli_index = stimuli_index;
+        trial.session       = n_session;
         trial.file          = selected_stimuli;
         trial.sequence = struct();
         sequenceid = 0;

@@ -14,11 +14,8 @@ from . import utils
 
 def item(item, participant_path, ascii_path, config_file, stimuli_path, save_path):
     print(f'Processing {item}')
-    subj_metadata = loadmat(str(participant_path / 'metadata.mat'), simplify_cells=True)
     trial_metadata = loadmat(str(item), simplify_cells=True)
-    trial_date = to_datetime(trial_metadata['__header__'][-20:].decode('utf-8'), format='%b %d %H:%M:%S %Y')
-    fst_date = to_datetime(subj_metadata['fst_date'], format='%d-%m-%Y %H:%M')
-    item_session = 2 if trial_date.date() > fst_date.date() else 1
+    item_session = trial_metadata['trial']['session']
 
     trial_metadata = trial_metadata['trial']
     trial_path = save_path / item.name.split('.')[0]

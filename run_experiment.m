@@ -18,6 +18,7 @@ function run_experiment()
     end
 
     subjfile = fullfile(SAVE_PATH, 'metadata.mat');
+    n_session = 1;
     loaded_metadata = false;
     if exist(subjfile, 'file') > 0
         opts.Interpreter = 'tex';
@@ -26,10 +27,10 @@ function run_experiment()
         if strcmp(load_metadata, 'Yes')
             load(subjfile)
             loaded_metadata = true;
-            snd_date = char(datetime('now','TimeZone','local','Format','dd-MM-y HH:mm'));
+            n_session = 2;
             snd_sleeptime = sleep_time;
             snd_wakeuptime = wakeup_time;
-            save(subjfile, 'snd_sleeptime', 'snd_wakeuptime', 'snd_date', '-append')
+            save(subjfile, 'snd_sleeptime', 'snd_wakeuptime', '-append')
         elseif strcmp(load_metadata, 'Cancel')
             return
         end
@@ -48,12 +49,11 @@ function run_experiment()
         shuffled_stimuli = shuffle_in_blocks(stimuli_splits, ordered_stimuli);
         shuffled_stimuli = cat(1, TEST_FILE, shuffled_stimuli);
         stimuli_index = 1;
-        fst_date = char(datetime('now','TimeZone','local','Format','dd-MM-y HH:mm'));
         fst_sleeptime = sleep_time;
         fst_wakeuptime = wakeup_time;
     
         save(subjfile, 'subjname', 'reading_level', ...
-            'fst_wakeuptime', 'fst_sleeptime', 'fst_date', ...
+            'fst_wakeuptime', 'fst_sleeptime', ...
             'shuffled_stimuli', 'stimuli_index', 'use_eyetracker')
     end
     
@@ -67,7 +67,7 @@ function run_experiment()
             use_eyetracker_in_trial = use_eyetracker;
         end
     
-        exit_status = run_trial(subjname, i, shuffled_stimuli, stimuli_questions, config, SAVE_PATH, use_eyetracker_in_trial);
+        exit_status = run_trial(subjname, n_session, i, shuffled_stimuli, stimuli_questions, config, SAVE_PATH, use_eyetracker_in_trial);
         aborted = exit_status == 1;
         
         if ~aborted
