@@ -167,22 +167,24 @@ def add_word_fixations(word_fix, word_idx, words_fix):
 
 def add_word_measures(word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude, word_fix, screen_fix,
                       measures):
-    subj_name, screen = word_fix['subj'].iloc[0], word_fix['screen'].iloc[0]
+    subj_name, screen, word_pos = word_fix['subj'].iloc[0], word_fix['screen'].iloc[0], word_fix['word_pos'].iloc[0]
     if has_no_fixations(word_fix) or exclude:
         measures.append([subj_name, screen, word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude,
                          0, 0, 0, 0, 0, 0, 0, 0, 0])
     else:
-        ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc = word_measures(word_fix, screen_fix)
+        following_words_fix = screen_fix[screen_fix['word_pos'] > word_pos].dropna()
+        ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc = word_measures(word_fix, following_words_fix)
         measures.append([subj_name, screen, word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude,
                          ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc])
 
 
-def word_measures(word_fix, screen_fix):
-    n_first_pass_fix = first_pass_n_fix(word_fix, screen_fix)
+def word_measures(word_fix, following_words_fix):
+    n_first_pass_fix = first_pass_n_fix(word_fix, following_words_fix)
+    last_fix_before_exiting = last_fix_before_exiting_to_the_right(word_fix, following_words_fix)
     ffd = word_fix['duration'].iloc[0] if n_first_pass_fix > 0 else 0
     sfd = ffd if len(word_fix['screen_fix']) == 1 else 0
     fprt = word_fix['duration'][:n_first_pass_fix].sum()
-    rpd = word_fix['duration'][n_first_pass_fix:].sum()
+    rpd = word_fix['duration'].loc[:last_fix_before_exiting].sum() if last_fix_before_exiting != -1 else 0
     tfd = word_fix['duration'].sum()
     rrt = rpd - fprt
     sprt = tfd - fprt
@@ -191,10 +193,9 @@ def word_measures(word_fix, screen_fix):
     return ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc
 
 
-def first_pass_n_fix(word_fix, screen_fix):
+def first_pass_n_fix(word_fix, following_words_fix):
     # Count number of first pass reading fixations on word
-    word_pos, fst_fix = word_fix['word_pos'].iloc[0], word_fix['screen_fix'].iloc[0]
-    following_words_fix = screen_fix[screen_fix['word_pos'] > word_pos].dropna()
+    fst_fix = word_fix['screen_fix'].iloc[0]
     regressive_saccade = (following_words_fix['screen_fix'] < fst_fix).values.any()
     if regressive_saccade:
         # Word was first skipped and then fixated (i.e., right-to-left saccade)
@@ -202,6 +203,16 @@ def first_pass_n_fix(word_fix, screen_fix):
     else:
         # This disregards intra-word regressions; inter-word regressions (rightward or leftward) are considered
         return n_consecutive_fix(word_fix['screen_fix'])
+
+
+def last_fix_before_exiting_to_the_right(word_fix, following_words_fix):
+    first_fix_to_the_right = following_words_fix['screen_fix'].min()
+    fixs_before_exiting_to_the_right = word_fix[word_fix['screen_fix'] < first_fix_to_the_right]['screen_fix']
+    if not fixs_before_exiting_to_the_right.empty:
+        last_fix_idx = fixs_before_exiting_to_the_right.idxmax()
+    else:
+        last_fix_idx = -1
+    return last_fix_idx
 
 
 def n_consecutive_fix(fix_indices):
