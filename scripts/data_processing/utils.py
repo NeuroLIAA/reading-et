@@ -324,11 +324,9 @@ def average_measures(item_measures, measures, n_bins):
         subj_measures = item_measures[item_measures['subj'] == subj]
         for measure in measures:
             measure_mask = subj_measures[measure] != 0
-            max_n_bins = subj_measures[measure_mask][measure].nunique()
-            if max_n_bins < n_bins:
-                n_bins = max_n_bins
-            binarized = pd.qcut(subj_measures[measure][measure_mask], n_bins, labels=[j for j in range(1, n_bins + 1)])
-            subj_measures.loc[binarized.index, measure] = binarized.astype(int)
+            binarized = pd.qcut(subj_measures[measure][measure_mask], n_bins, labels=False,
+                                duplicates='drop')
+            subj_measures.loc[binarized.index, measure] = (binarized + 1).astype(int)
         subjects_measures.append(subj_measures)
     subjects_measures_df = pd.concat(subjects_measures)
     # sanity checks: each word_idx corresponds to the same word and each subject has all word_idx
