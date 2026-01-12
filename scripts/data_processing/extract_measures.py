@@ -119,7 +119,7 @@ def add_aggregated_measures(item_measures):
     if not item_measures.empty:
         valid_measures = item_measures[~item_measures['excluded']]
         item_measures['LS'] = valid_measures.groupby(['word_idx'])['FPRT'].transform(lambda x: sum(x == 0) / len(x))
-        item_measures['RR'] = valid_measures.groupby(['word_idx'])['RPD'].transform(lambda x: sum(x > 0) / len(x))
+        item_measures['RR'] = valid_measures.groupby(['word_idx'])['RRT'].transform(lambda x: sum(x > 0) / len(x))
     return item_measures
 
 
