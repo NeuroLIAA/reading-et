@@ -173,18 +173,22 @@ def add_word_measures(word_idx, clean_word, sentence_idx, sentence_pos, screen_p
                          0, 0, 0, 0, 0, 0, 0, 0, 0])
     else:
         following_words_fix = screen_fix[screen_fix['word_pos'] > word_pos].dropna()
-        ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc = word_measures(word_fix, following_words_fix)
+        prev_words_fix = screen_fix[screen_fix['word_pos'] < word_pos].dropna()
+        ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc = word_measures(word_fix, prev_words_fix, following_words_fix)
         measures.append([subj_name, screen, word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude,
                          ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc])
 
 
-def word_measures(word_fix, following_words_fix):
+def word_measures(word_fix, prev_words_fix, following_words_fix):
     n_first_pass_fix = first_pass_n_fix(word_fix, following_words_fix)
     last_fix_before_exiting = last_fix_before_exiting_to_the_right(word_fix, following_words_fix)
+    regressions_to_prev = regressions_to_previous_words(word_fix, prev_words_fix, last_fix_before_exiting)
+    fix_dur_before_exiting_to_the_right = word_fix['duration'].loc[:last_fix_before_exiting].sum() \
+        if last_fix_before_exiting != -1 else 0
     ffd = word_fix['duration'].iloc[0] if n_first_pass_fix > 0 else 0
     sfd = ffd if len(word_fix['screen_fix']) == 1 else 0
     fprt = word_fix['duration'][:n_first_pass_fix].sum()
-    rpd = word_fix['duration'].loc[:last_fix_before_exiting].sum() if last_fix_before_exiting != -1 else 0
+    rpd = regressions_to_prev + fix_dur_before_exiting_to_the_right
     tfd = word_fix['duration'].sum()
     rrt = rpd - fprt
     sprt = tfd - fprt
@@ -213,6 +217,11 @@ def last_fix_before_exiting_to_the_right(word_fix, following_words_fix):
     else:
         last_fix_idx = -1
     return last_fix_idx
+
+
+def regressions_to_previous_words(word_fix, prev_words_fix, last_fix_before_exiting):
+    return prev_words_fix[(prev_words_fix['screen_fix'] > word_fix['screen_fix'].iloc[0]) &
+                          (prev_words_fix['screen_fix'] < last_fix_before_exiting)]['duration'].sum()
 
 
 def n_consecutive_fix(fix_indices):
