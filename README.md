@@ -5,6 +5,14 @@ The dataset is now available in [Figshare](https://figshare.com/articles/dataset
 ## About
 Eye-tracking is a well-established methodology to study reading processes. Our gaze jumps from word to word, sampling information from text almost sequentially. The time spent on each word, along with patterns of skipping or revisiting, provides proxies for different cognitive processes during comprehension. However, few studies have focused on Spanish, where empirical data remain scarce, and little is known about how findings from other languages translate to Spanish reading behavior. We present the largest publicly available Spanish eye-tracking dataset to date, comprising readings of self-contained stories from 113 native speakers (mean age 23.8; 61 females, 52 males). The dataset includes both long stories (3300 ± 747 words, 11 participants per item on average) and short stories (795 ± 135 words, 50 participants per item on average), providing extensive coverage of natural reading scenarios. This comprehensive resource offers valuable opportunities to investigate eye movement patterns during Spanish reading, explore language-specific cognitive processes, examine Spanish linguistic phenomena, and develop computational algorithms for reading research and natural language processing applications.
 
+## Usage Notes
+
+The code provided is divided in three parts: MATLAB code for the experiment, Python code for visualization and supervised data curation, and Python code for the computation and subsequent analysis of the eye-tracking measures (see [Code](#Code)). The entry point for running the experiment is `run_experiment.m`, although it is primarily left for reference, and there is no guarantee of its correct execution.
+
+To run the Python code, download the dataset from Figshare and place it in the root folder of the git repository. To visualize and/or edit the data, run the script `edit_trial.py`. If you wish to inspect the raw data, remove the ‘*processed’* folder from the ‘*data’* directory. To compute and analyse the eye-tracking measures, run the script `em_analysis.py`.
+
+The necessary packages can be installed via *pip* using the `requirements.txt` file. Linear Mixed Models analysis is performed using the *pymer* package, which requires having R installed (see the package installation notes for further instructions).
+
 ## Definitions
 A *word* is defined as a sequence of characters between two blank spaces, except those characters that correspond to punctuation signs.
  - *Unfrequent word*: its number of appearances in the latinamerican subtitles database from [EsPal](https://www.bcbl.eu/databases/espal/) is less or equal to 100.
