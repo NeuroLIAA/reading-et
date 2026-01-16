@@ -22,9 +22,6 @@ def list_participants(raw_path, processed_path):
 
 
 def flag_and_order_participants(raw_path, processed_path, participants):
-    participants_dates = [datetime.strptime(date, '%d-%m-%Y %H:%M') for date in
-                          [utils.load_matfile(raw_path / participant / 'metadata.mat')['fst_date'] for participant in
-                           participants]]
     for i, participant in enumerate(participants):
         processed_trials_path = processed_path / participant
         raw_trials_path = raw_path / participant
@@ -38,7 +35,7 @@ def flag_and_order_participants(raw_path, processed_path, participants):
             if all_edited:
                 participants[i] += ' \u2705'
 
-    participants = [participant for _, participant in sorted(zip(participants_dates, participants))]
+    participants = sorted(list(set(participants)))
     return participants
 
 

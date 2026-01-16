@@ -14,11 +14,8 @@ from . import utils
 
 def item(item, participant_path, ascii_path, config_file, stimuli_path, save_path):
     print(f'Processing {item}')
-    subj_metadata = loadmat(str(participant_path / 'metadata.mat'), simplify_cells=True)
     trial_metadata = loadmat(str(item), simplify_cells=True)
-    trial_date = to_datetime(trial_metadata['__header__'][-20:].decode('utf-8'), format='%b %d %H:%M:%S %Y')
-    fst_date = to_datetime(subj_metadata['fst_date'], format='%d-%m-%Y %H:%M')
-    item_session = 2 if trial_date.date() > fst_date.date() else 1
+    item_session = trial_metadata['trial']['session']
 
     trial_metadata = trial_metadata['trial']
     trial_path = save_path / item.name.split('.')[0]
@@ -38,7 +35,7 @@ def item(item, participant_path, ascii_path, config_file, stimuli_path, save_pat
 
     flags = {'edited': False, 'firstval_iswrong': not manualval_results[0],
              'lastval_iswrong': not manualval_results[1], 'wrong_answers': 0, 'iswrong': False,
-             'session': item_session, 'date': trial_date.strftime('%d-%m-%Y %H:%M')}
+             'session': item_session, 'shift_x': 0}
     utils.save_structs(et_messages,
                        screen_sequence,
                        DataFrame(trial_metadata['questions_answers']),
@@ -68,10 +65,9 @@ def save_profile(participant_rawpath, save_path):
     metafile = loadmat(str(participant_rawpath / 'metadata.mat'), simplify_cells=True)
     stimuli_order = [str(stimuli) for stimuli in metafile['shuffled_stimuli'] if stimuli != 'Test']
     reading_level = int(metafile['reading_level']) if metafile['reading_level'] != 'NA' else metafile['reading_level']
-    profile = {'name': [metafile['subjname']], 'age': [metafile['age']],
+    profile = {'name': [metafile['subjname']],
                'reading_level': [reading_level],
-               'gender': [metafile['gender']], 'n_sessions': [metafile['n_sessions']],
-               'fst_date': [metafile['fst_date']], 'snd_date': [metafile['snd_date']],
+               'n_sessions': [metafile['n_sessions']],
                'fst_sleeptime': [metafile['fst_sleeptime']], 'snd_sleeptime': [metafile['snd_sleeptime']],
                'fst_wakeuptime': [metafile['fst_wakeuptime']], 'snd_wakeuptime': [metafile['snd_wakeuptime']],
                'stimuli_order': [stimuli_order]}

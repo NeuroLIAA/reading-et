@@ -4,21 +4,31 @@ from scripts.data_processing import utils
 import pandas as pd
 import numpy as np
 import argparse
+from concurrent.futures import ProcessPoolExecutor, as_completed
+
+
+def process_single_item(item, subjects, reprocess, save_path):
+    item_name = item.stem
+    screens_lines = utils.load_lines_by_screen(item)
+    item_savepath = save_path / item_name
+    item_savepath.mkdir(exist_ok=True, parents=True)
+    item_subjects = get_subjects_to_process(subjects, item_name, item_savepath, reprocess)
+    item_stats = {'n_subj': 0, 'n_fix': 0, 'n_words': 0, 'out_of_bounds': 0, 'return_sweeps': 0}
+    if item_subjects:
+        process_item(item_name, item_subjects, screens_lines, item_stats, item_savepath)
+    return item_name, item_stats
 
 
 def assign_fixations_to_words(items, subjects, save_path, reprocess=False):
     print('Assigning fixations to words...')
-    items_stats = {item.stem: {'n_subj': 0, 'n_fix': 0, 'n_words': 0, 'out_of_bounds': 0, 'return_sweeps': 0}
-                   for item in items}
-    for item in (pbar := tqdm(items)):
-        item_name = item.stem
-        pbar.set_description(f'Processing "{item_name}" trials')
-        screens_lines = utils.load_lines_by_screen(item)
-        item_savepath = save_path / item_name
-        item_savepath.mkdir(exist_ok=True, parents=True)
-        item_subjects = get_subjects_to_process(subjects, item_name, item_savepath, reprocess)
+    items_stats = {}
 
-        process_item(item_name, item_subjects, screens_lines, items_stats[item_name], item_savepath)
+    with ProcessPoolExecutor() as executor:
+        futures = {executor.submit(process_single_item, item, subjects, reprocess, save_path):
+                       item for item in items}
+        for future in tqdm(as_completed(futures), total=len(items), desc='Processing items in parallel'):
+            item_name, item_stats = future.result()
+            items_stats[item_name] = item_stats
     save_stats(items_stats, save_path)
 
 
@@ -42,6 +52,8 @@ def process_subj_trial(subj_name, trial_path, screen_sequence, screens_lines, it
         word_pos = 0
         for line_num, line in enumerate(screens_lines[screen_id]):
             words, spaces_pos = line['text'].split(), line['spaces_pos']
+            if line['text'][:3] == '   ':
+                spaces_pos = spaces_pos[3:]
             line_fix = get_line_fixations(fixations, line_num, lines_pos)
             assign_line_fixations_to_words(word_pos, line_fix, line_num, spaces_pos,
                                            screen_id, subj_name, trial_fix_by_word)
@@ -119,12 +131,12 @@ def save_stats(items_stats, save_path):
 
 def postprocess_word_fixations(trial_fix_by_word, item_stats):
     prev_nfix = n_fix(trial_fix_by_word)
-    trial_fix_by_word = trial_fix_by_word.groupby(['screen', 'line'], group_keys=False) \
-        .apply(remove_return_sweeps_from_line)
+    trial_fix_by_word = (trial_fix_by_word.groupby(['screen', 'line'], group_keys=False)[trial_fix_by_word.columns]
+                         .apply(remove_return_sweeps_from_line))
     item_stats['return_sweeps'] += prev_nfix - n_fix(trial_fix_by_word)
 
-    trial_fix_by_word = trial_fix_by_word.groupby(['screen', 'word_pos'], group_keys=False) \
-        .apply(remove_na_from_fixated_words)
+    trial_fix_by_word = (trial_fix_by_word.groupby(['screen', 'word_pos'], group_keys=False)[trial_fix_by_word.columns]
+                         .apply(remove_na_from_fixated_words))
     trial_fix_by_word = make_screen_fix_consecutive(trial_fix_by_word)
     trial_fix_by_word = cast_to_int(trial_fix_by_word)
     trial_fix_by_word = trial_fix_by_word.sort_values(['screen', 'line', 'word_pos', 'screen_fix'])

@@ -5,6 +5,7 @@ from scripts.data_processing.utils import average_measures
 from tqdm import tqdm
 import argparse
 import pandas as pd
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 PUNCTUATION_MARKS = ['?', '!', '.']
 WEIRD_CHARS = ['¿', '?', '¡', '!', '.', '−', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0']
@@ -52,40 +53,51 @@ def main(item, data_path, items_path, trials_path, save_path, reprocess):
     extract_measures(items_wordsfix, chars_mapping, items_path, save_path, reprocess)
 
 
-def words_measurements(items_measures, save_path):
+def words_measures(items_measures, save_path):
     excluded_words = items_measures[items_measures['excluded']]
     items_measures = items_measures[~items_measures['excluded']]
     items_measures = items_measures.drop(columns=['excluded'])
     items_measures = items_measures.groupby(['word']).mean().round(2)
-    items_measures.to_pickle(save_path / 'words_measurements.pkl')
+    items_measures.to_csv(save_path / 'words_measures.csv')
     missing_words = set(excluded_words['word']) - set(items_measures.index)
     missing_words_df = pd.DataFrame(0, index=list(missing_words), columns=items_measures.columns)
     items_measures = pd.concat([items_measures, missing_words_df])
     return items_measures
 
 
+def process_single_item(item, items_path, chars_mapping, reprocess, save_path):
+    screens_text = utils.load_lines_text_by_screen(item.stem, items_path)
+    item_measures_path = save_path / 'measures' / item.name
+    item_trials = get_trials_to_process(item, item_measures_path, reprocess)
+    if item_trials:
+        item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, chars_mapping)
+        item_measures = add_aggregated_measures(item_measures)
+        item_avg_measures = average_measures(item_measures,
+                                             measures=['FFD', 'SFD', 'FPRT', 'TFD', 'RPD', 'RRT', 'SPRT'],
+                                             n_bins=10)
+        utils.save_measures_by_subj(item_measures, item_measures_path)
+        return item.name, item_avg_measures, item_scanpaths
+    else:
+        return item.name, None, None
+
+
 def extract_measures(items_wordsfix, chars_mapping, items_path, save_path, reprocess=False):
     print(f'Extracting eye-tracking measures from trials...')
     items_measures = pd.DataFrame()
     items_scanpaths = {item.name: {} for item in items_wordsfix}
-    for item in (pbar := tqdm(items_wordsfix)):
-        pbar.set_description(f'Processing "{item.stem}" trials')
-        screens_text = utils.load_lines_text_by_screen(item.stem, items_path)
-        item_measures_path = save_path / 'measures' / item.name
-        item_trials = get_trials_to_process(item, item_measures_path, reprocess)
-        if item_trials:
-            item_measures, item_scanpaths = extract_item_measures(screens_text, item_trials, chars_mapping)
-            item_measures = add_aggregated_measures(item_measures)
-            item_avg_measures = average_measures(item_measures,
-                                                 measures=['FFD', 'SFD', 'FPRT', 'TFD', 'RPD', 'RRT', 'SPRT'],
-                                                 n_bins=10)
-            items_measures = pd.concat([items_measures, item_avg_measures], ignore_index=True)
-            items_scanpaths[item.name] = item_scanpaths
-            utils.save_measures_by_subj(item_measures, item_measures_path)
+
+    with ProcessPoolExecutor() as executor:
+        futures = {executor.submit(process_single_item, item, items_path, chars_mapping, reprocess, save_path):
+                       item for item in items_wordsfix}
+        for future in tqdm(as_completed(futures), total=len(items_wordsfix), desc='Processing items in parallel'):
+            item_name, item_avg_measures, item_scanpaths = future.result()
+            if item_avg_measures is not None:
+                items_measures = pd.concat([items_measures, item_avg_measures], ignore_index=True)
+                items_scanpaths[item_name] = item_scanpaths
 
     if not items_measures.empty:
-        words_avg_measures = words_measurements(items_measures, save_path)
-        utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure='FPRT')
+        words_avg_measures = words_measures(items_measures, save_path)
+        utils.save_subjects_scanpaths(items_scanpaths, words_avg_measures, chars_mapping, save_path, measure=None)
 
 
 def extract_item_measures(screens_text, trials, chars_mapping):
@@ -107,7 +119,7 @@ def add_aggregated_measures(item_measures):
     if not item_measures.empty:
         valid_measures = item_measures[~item_measures['excluded']]
         item_measures['LS'] = valid_measures.groupby(['word_idx'])['FPRT'].transform(lambda x: sum(x == 0) / len(x))
-        item_measures['RR'] = valid_measures.groupby(['word_idx'])['RPD'].transform(lambda x: sum(x > 0) / len(x))
+        item_measures['RR'] = valid_measures.groupby(['word_idx'])['RRT'].transform(lambda x: sum(x > 0) / len(x))
     return item_measures
 
 
@@ -155,22 +167,28 @@ def add_word_fixations(word_fix, word_idx, words_fix):
 
 def add_word_measures(word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude, word_fix, screen_fix,
                       measures):
-    subj_name, screen = word_fix['subj'].iloc[0], word_fix['screen'].iloc[0]
+    subj_name, screen, word_pos = word_fix['subj'].iloc[0], word_fix['screen'].iloc[0], word_fix['word_pos'].iloc[0]
     if has_no_fixations(word_fix) or exclude:
         measures.append([subj_name, screen, word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude,
                          0, 0, 0, 0, 0, 0, 0, 0, 0])
     else:
-        ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc = word_measures(word_fix, screen_fix)
+        following_words_fix = screen_fix[screen_fix['word_pos'] > word_pos].dropna()
+        prev_words_fix = screen_fix[screen_fix['word_pos'] < word_pos].dropna()
+        ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc = word_measures(word_fix, prev_words_fix, following_words_fix)
         measures.append([subj_name, screen, word_idx, clean_word, sentence_idx, sentence_pos, screen_pos, exclude,
                          ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc])
 
 
-def word_measures(word_fix, screen_fix):
-    n_first_pass_fix = first_pass_n_fix(word_fix, screen_fix)
+def word_measures(word_fix, prev_words_fix, following_words_fix):
+    n_first_pass_fix = first_pass_n_fix(word_fix, following_words_fix)
+    last_fix_before_exiting = last_fix_before_exiting_to_the_right(word_fix, following_words_fix)
+    regressions_to_prev = regressions_to_previous_words(word_fix, prev_words_fix, last_fix_before_exiting)
+    fix_dur_before_exiting_to_the_right = word_fix['duration'].loc[:last_fix_before_exiting].sum() \
+        if last_fix_before_exiting != -1 else 0
     ffd = word_fix['duration'].iloc[0] if n_first_pass_fix > 0 else 0
     sfd = ffd if len(word_fix['screen_fix']) == 1 else 0
     fprt = word_fix['duration'][:n_first_pass_fix].sum()
-    rpd = word_fix['duration'][n_first_pass_fix:].sum()
+    rpd = regressions_to_prev + fix_dur_before_exiting_to_the_right
     tfd = word_fix['duration'].sum()
     rrt = rpd - fprt
     sprt = tfd - fprt
@@ -179,10 +197,9 @@ def word_measures(word_fix, screen_fix):
     return ffd, sfd, fprt, rpd, tfd, rrt, sprt, fc, rc
 
 
-def first_pass_n_fix(word_fix, screen_fix):
+def first_pass_n_fix(word_fix, following_words_fix):
     # Count number of first pass reading fixations on word
-    word_pos, fst_fix = word_fix['word_pos'].iloc[0], word_fix['screen_fix'].iloc[0]
-    following_words_fix = screen_fix[screen_fix['word_pos'] > word_pos].dropna()
+    fst_fix = word_fix['screen_fix'].iloc[0]
     regressive_saccade = (following_words_fix['screen_fix'] < fst_fix).values.any()
     if regressive_saccade:
         # Word was first skipped and then fixated (i.e., right-to-left saccade)
@@ -190,6 +207,21 @@ def first_pass_n_fix(word_fix, screen_fix):
     else:
         # This disregards intra-word regressions; inter-word regressions (rightward or leftward) are considered
         return n_consecutive_fix(word_fix['screen_fix'])
+
+
+def last_fix_before_exiting_to_the_right(word_fix, following_words_fix):
+    first_fix_to_the_right = following_words_fix['screen_fix'].min()
+    fixs_before_exiting_to_the_right = word_fix[word_fix['screen_fix'] < first_fix_to_the_right]['screen_fix']
+    if not fixs_before_exiting_to_the_right.empty:
+        last_fix_idx = fixs_before_exiting_to_the_right.idxmax()
+    else:
+        last_fix_idx = -1
+    return last_fix_idx
+
+
+def regressions_to_previous_words(word_fix, prev_words_fix, last_fix_before_exiting):
+    return prev_words_fix[(prev_words_fix['screen_fix'] > word_fix['screen_fix'].iloc[0]) &
+                          (prev_words_fix['screen_fix'] < last_fix_before_exiting)]['duration'].sum()
 
 
 def n_consecutive_fix(fix_indices):
