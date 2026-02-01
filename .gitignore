@@ -21,3 +21,8 @@ tesis/*
 data/*
 metadata/*
 stimuli/*
+*.zip
+scripts1/*
+results/*
+correlacion/results_og_all/*
+correlacion/experiments/*
