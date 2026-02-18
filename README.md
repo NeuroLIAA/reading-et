@@ -1,7 +1,7 @@
 # Eye-tracking during natural reading
 ![Example trial](preview.jpg)
-## Download link
-The dataset is now available in [Figshare](https://figshare.com/articles/dataset/Eye-tracking_during_natural_reading_of_short_stories_in_Spanish/28311908)!
+## Article
+The dataset has now been published: [Cuentos: A Large-Scale Eye-Tracking Reading Corpus on Spanish Narrative Texts. Sci Data (2026)](https://doi.org/10.1038/s41597-026-06798-z)
 ## About
 Eye-tracking is a well-established methodology to study reading processes. Our gaze jumps from word to word, sampling information from text almost sequentially. The time spent on each word, along with patterns of skipping or revisiting, provides proxies for different cognitive processes during comprehension. However, few studies have focused on Spanish, where empirical data remain scarce, and little is known about how findings from other languages translate to Spanish reading behavior. We present the largest publicly available Spanish eye-tracking dataset to date, comprising readings of self-contained stories from 113 native speakers (mean age 23.8; 61 females, 52 males). The dataset includes both long stories (3300 ± 747 words, 11 participants per item on average) and short stories (795 ± 135 words, 50 participants per item on average), providing extensive coverage of natural reading scenarios. This comprehensive resource offers valuable opportunities to investigate eye movement patterns during Spanish reading, explore language-specific cognitive processes, examine Spanish linguistic phenomena, and develop computational algorithms for reading research and natural language processing applications.
 
@@ -79,3 +79,24 @@ Data processing was carried out entirely in Python 3.10. Necessary packages are 
 Data analysis consists of printing overall stats per trial, plotting several early measures as a function of known effects (i.e., word length and frequency) and performing mixed effects models analysis with such fixed effects (```em_analysis.py```). To run the Linear Mixed Models analysis, R must be installed with the following packages: *lme4*, *lmerTest*, and *emmeans* (see [pymer4 installation](http://eshinjolly.com/pymer4/installation.html)).
 
 This script also takes care of steps 3 and 4 of data processing by calling the corresponding functions from the aforementioned files.
+
+## How to cite us
+If you make use of the data or source code, please provide the appropriate citation:
+```
+@article{travi_cuentos_2026,
+	title = {Cuentos: {A} {Large}-{Scale} {Eye}-{Tracking} {Reading} {Corpus} on {Spanish} {Narrative} {Texts}},
+	copyright = {2026 The Author(s)},
+	issn = {2052-4463},
+	shorttitle = {Cuentos},
+	url = {https://www.nature.com/articles/s41597-026-06798-z},
+	doi = {10.1038/s41597-026-06798-z},
+	language = {en},
+	urldate = {2026-02-18},
+	journal = {Scientific Data},
+	publisher = {Nature Publishing Group},
+	author = {Travi, Fermin and Bianchi, Bruno and Slezak, Diego Fernandez and Kamienkowski, Juan E.},
+	month = feb,
+	year = {2026},
+	keywords = {Computational neuroscience, Language},
+}
+```
