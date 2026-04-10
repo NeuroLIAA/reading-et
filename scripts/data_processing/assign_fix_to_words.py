@@ -147,6 +147,9 @@ def postprocess_word_fixations(trial_fix_by_word, item_stats):
 def remove_return_sweeps_from_line(line_fix):
     # Remove fixations resulting from oculomotor errors when jumping lines
     fst_fix_num = line_fix['screen_fix'].min()
+    print('----------------')
+    print('Antes')
+    print(line_fix.head())
     first_saccade_is_regressive = is_regression(line_fix, fst_fix_num, fst_fix_num + 1)
     if first_saccade_is_regressive:
         first_word_with_fix = line_fix[~line_fix['screen_fix'].isna()]['word_pos'].min()
@@ -157,7 +160,8 @@ def remove_return_sweeps_from_line(line_fix):
                                                         left_most_fix['screen_fix'].iloc[0],
                                                         inclusive='left'),
                                                         ['trial_fix', 'screen_fix', 'duration', 'x']] = np.nan
-
+    print('Después')
+    print(line_fix.head())
     return line_fix
 
 
