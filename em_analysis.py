@@ -1,7 +1,8 @@
-import numpy as np
+﻿import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import re
 from pymer4 import Lmer
 import argparse
 from pathlib import Path
@@ -91,9 +92,23 @@ def mlm_analysis(et_measures, words_freq):
         fit_mlm(name, formula, et_measures)
 
 
+def grouping_factors(formula):
+    return [match.strip() for match in re.findall(r'\|\s*([^)]+?)\)', formula)]
+
+
 def fit_mlm(name, formula, data, model_family='gaussian'):
-    model = Lmer(formula, data=data, family=model_family)
-    results = model.fit()
+    for factor in grouping_factors(formula):
+        if factor in data.columns and data[factor].nunique(dropna=True) < 2:
+            print(f"Skipping {name} model: grouping factor '{factor}' has fewer than 2 levels")
+            return
+
+    try:
+        model = Lmer(formula, data=data, family=model_family)
+        results = model.fit()
+    except Exception as exc:
+        print(f"Skipping {name} model due to fitting error: {exc}")
+        return
+
     print(f'{name} model: {formula}')
     print(results)
     print(f'AIC: {model.AIC}')
@@ -215,8 +230,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Perform data analysis on extracted eye-tracking measures')
     parser.add_argument('-w', '--wordsfix', type=str, default='data/processed/words_fixations',
                         help='Where items\' fixations by word are stored')
-    parser.add_argument('-m', '--measures', type=str, default='results/measures',
-                        help='Path where eye-tracking measures are stored')
+    parser.add_argument('-m', '--measures', type=str, default=None,
+                        help='Path where eye-tracking measures are stored. Defaults to <output>/measures')
     parser.add_argument('-s', '--stimuli', type=str, default='stimuli',
                         help='Items path, from which the stimuli (items\' text) is extracted')
     parser.add_argument('-p', '--participants', type=str, default='data/processed/trials',
@@ -231,8 +246,10 @@ if __name__ == '__main__':
     parser.add_argument('-i', '--item', type=str, default='all')
     args = parser.parse_args()
 
-    wordsfix_path, measures_path, stimuli_path, participants_path, save_path = \
-        Path(args.wordsfix), Path(args.measures), Path(args.stimuli), Path(args.participants), Path(args.output)
+    save_path = Path(args.output)
+    wordsfix_path, measures_path, stimuli_path, participants_path = \
+        Path(args.wordsfix), Path(args.measures) if args.measures else save_path / 'measures', \
+        Path(args.stimuli), Path(args.participants)
     words_freq_file, stats_file, questions_file = Path(args.words_freq), Path(args.stats), Path(args.questions)
     subjects_associations, words_associations = parse_wa_task(questions_file, participants_path)
 
@@ -248,3 +265,4 @@ if __name__ == '__main__':
     words_associations.to_csv(save_path / 'words_associations.csv', index=False)
 
     do_analysis(items_paths, words_freq_file, stats_file, save_path)
+

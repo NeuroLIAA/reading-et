@@ -2,6 +2,24 @@
 *.edf
 *.asc
 *.pkl
+.venv/
+.venv-analysis/
+__pycache__/
+
+# local dataset copies and pipeline outputs
+data/processed/
+data/raw/
+data/cloze_task/
+data/*.zip
+data/**/*.log
+data/tmp/
+data/cache/
+results_all/
+results_smoke/
+results_smoke4/
+results_all.zip
+matlab_run_experiment.log
+script.py
 
 # texts
 *.txt

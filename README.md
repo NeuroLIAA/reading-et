@@ -80,6 +80,78 @@ Data analysis consists of printing overall stats per trial, plotting several ear
 
 This script also takes care of steps 3 and 4 of data processing by calling the corresponding functions from the aforementioned files.
 
+## Processed Scanpath Pipeline for BETO / ACL-GazeSupervisedLM
+
+This repository now also contains a lightweight export pipeline used to connect the reading corpus with the BETO gaze-supervised language-model experiments in `ACL-GazeSupervisedLM`.
+
+The goal of this added pipeline is to expose processed scanpaths in formats that can be consumed directly by the BETO training and debugging steps.
+
+### New scripts
+
+- `build_scanpaths_from_trials.py`
+  - reconstructs one fixation-aligned scanpath per subject and story from processed trials,
+  - writes:
+    - `data/processed/words_fixations/<story>/<subject>.pkl`
+    - `data/processed/scanpaths/<story>/<subject>.json`
+
+- `build_scanpath_alignment.py`
+  - aligns segmented scanpath text files with the full story text and exact global word ids,
+  - writes:
+    - `aligned_output/aligned_scanpaths.jsonl`
+    - `aligned_output/alignment_summary.json`
+    - `aligned_output/alignment_issues.jsonl`
+    - `results_all_alligned/<story>/<subject>.json`
+
+- `export_scanpaths_table.py`
+  - flattens scanpath JSON files into CSV tables for inspection or external analysis.
+
+### Why these outputs matter
+
+Two processed outputs are particularly important for the BETO pipeline:
+
+- `results_all_alligned/`
+  - this mirrored structure contains one JSON file per story and participant,
+  - these files were used as direct inputs in the debugging and smoke-training stages corresponding to steps 4, 5, and 6 in `ACL-GazeSupervisedLM`.
+
+- `aligned_output/aligned_scanpaths.jsonl`
+  - this is the consolidated aligned dataset used by the larger BETO pretraining pipeline, especially the canonical `step7b` training run.
+
+In other words:
+
+- `step4/5/6` in the language-model repo used per-subject aligned JSON files from `results_all_alligned/`
+- `step7b` used the consolidated JSONL file from `aligned_output/`
+
+### Typical workflow
+
+1. Compute or recover processed trial-level scanpaths:
+
+```bash
+python build_scanpaths_from_trials.py
+```
+
+2. Build text/scanpath alignment outputs for the BETO pipeline:
+
+```bash
+python build_scanpath_alignment.py --results_dir results_all --stimuli_dir stimuli --output_dir aligned_output --mirrored_output_dir results_all_alligned --full_scanpaths_dir data/processed/scanpaths
+```
+
+3. Optionally export flat CSV tables:
+
+```bash
+python export_scanpaths_table.py --scanpaths-dir data/processed/scanpaths
+```
+
+### Outputs intentionally versioned for reproducibility
+
+To preserve compatibility with the current BETO experiments, this repository may version:
+
+- `aligned_output/aligned_scanpaths.jsonl`
+- `aligned_output/alignment_summary.json`
+- `aligned_output/alignment_issues.jsonl`
+- `results_all_alligned/`
+
+These outputs are not raw eyetracking recordings. They are processed alignment artifacts required to reproduce the current BETO scanpath-supervised language-model pipeline across repositories.
+
 ## How to cite us
 If you make use of the data or source code, please provide the appropriate citation:
 ```

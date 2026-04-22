@@ -1,0 +1,12 @@
+{
+  "stories": 20,
+  "participants": 1015,
+  "examples": 65671,
+  "quality_counts": {
+    "high": 65671
+  },
+  "issues": 0,
+  "results_scanpaths_dir": "C:\\Users\\PCUser\\Documents\\Facultad\\Tesis\\reading-et\\results_all\\scanpaths",
+  "stimuli_dir": "C:\\Users\\PCUser\\Documents\\Facultad\\Tesis\\reading-et\\stimuli",
+  "full_scanpaths_dir": "C:\\Users\\PCUser\\Documents\\Facultad\\Tesis\\reading-et\\data\\processed\\scanpaths"
+}
