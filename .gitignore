@@ -23,10 +23,11 @@ metadata/*
 stimuli/*
 *.zip
 scripts1/*
-results/*
 correlacion/results_og_all/*
 correlacion/experiments/*
 old/*
 .codex
 correlacion/results_og_all_El espejo/*
+correlacion/results_og_all_El espejo filtered/*
 correlacion/results_og_all_Axolotl/*
+results/*
