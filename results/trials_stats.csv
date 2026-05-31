@@ -1,3 +1,3 @@
 ,subjs,words,words_excluded,fix,fix_excluded,regressions,skips,out_of_bounds,return_sweeps
-El espejo,8,628,155,8068,2152,4386,1852,10,66
-Total,8,628,155,8068,2152,4386,1852,10,66
+El espejo,11,628,155,174717,15274,33466,3043,10,108
+Total,11,628,155,174717,15274,33466,3043,10,108
