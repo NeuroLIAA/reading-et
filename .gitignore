@@ -23,14 +23,16 @@ metadata/*
 stimuli/*
 *.zip
 scripts1/*
-correlacion/results_og_all/*
 correlacion/experiments/*
 old/*
 .codex
 correlacion/results_og_all_El_espejo/*
 correlacion/results_og_all_El_espejo_filtered/*
+correlacion/results_og_all_Como_funcionan_los_bolsillos/*
 correlacion/results_og_all_Axolotl/*
 *.tsv
 *.json
 *.png
+results/*.csv
 results/*
+stimuli_csv/
