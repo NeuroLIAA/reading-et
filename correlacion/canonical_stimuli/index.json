@@ -1,0 +1,182 @@
+[
+  {
+    "story": "Ahora debería reírme, si no estuviera muerto",
+    "file": "Ahora_debería_reírme_si_no_estuviera_muerto.json",
+    "screens": 4,
+    "words": 713
+  },
+  {
+    "story": "Axolotl",
+    "file": "Axolotl.json",
+    "screens": 24,
+    "words": 1975
+  },
+  {
+    "story": "Bienvenido Bob",
+    "file": "Bienvenido_Bob.json",
+    "screens": 34,
+    "words": 2964
+  },
+  {
+    "story": "Buenos Aires",
+    "file": "Buenos_Aires.json",
+    "screens": 4,
+    "words": 714
+  },
+  {
+    "story": "Carta a una señorita en París",
+    "file": "Carta_a_una_señorita_en_París.json",
+    "screens": 36,
+    "words": 3182
+  },
+  {
+    "story": "Carta abierta",
+    "file": "Carta_abierta.json",
+    "screens": 37,
+    "words": 2925
+  },
+  {
+    "story": "Como funcionan los bolsillos",
+    "file": "Como_funcionan_los_bolsillos.json",
+    "screens": 6,
+    "words": 1133
+  },
+  {
+    "story": "Cómo funciona caminar en la nieve",
+    "file": "Cómo_funciona_caminar_en_la_nieve.json",
+    "screens": 6,
+    "words": 1221
+  },
+  {
+    "story": "Educar para escalar y bucear",
+    "file": "Educar_para_escalar_y_bucear.json",
+    "screens": 4,
+    "words": 720
+  },
+  {
+    "story": "El almohadón de plumas",
+    "file": "El_almohadón_de_plumas.json",
+    "screens": 4,
+    "words": 719
+  },
+  {
+    "story": "El espejo",
+    "file": "El_espejo.json",
+    "screens": 4,
+    "words": 783
+  },
+  {
+    "story": "El golpe de gracia",
+    "file": "El_golpe_de_gracia.json",
+    "screens": 4,
+    "words": 712
+  },
+  {
+    "story": "El loco cansino",
+    "file": "El_loco_cansino.json",
+    "screens": 39,
+    "words": 3265
+  },
+  {
+    "story": "El negro de París",
+    "file": "El_negro_de_París.json",
+    "screens": 50,
+    "words": 4440
+  },
+  {
+    "story": "El origen de las especies",
+    "file": "El_origen_de_las_especies.json",
+    "screens": 59,
+    "words": 4640
+  },
+  {
+    "story": "Embarrar la magia",
+    "file": "Embarrar_la_magia.json",
+    "screens": 5,
+    "words": 848
+  },
+  {
+    "story": "La canción que cantábamos todos los días",
+    "file": "La_canción_que_cantábamos_todos_los_días.json",
+    "screens": 4,
+    "words": 746
+  },
+  {
+    "story": "La de la Obsesión por la Patineta",
+    "file": "La_de_la_Obsesión_por_la_Patineta.json",
+    "screens": 4,
+    "words": 709
+  },
+  {
+    "story": "La gallina degollada",
+    "file": "La_gallina_degollada.json",
+    "screens": 4,
+    "words": 809
+  },
+  {
+    "story": "La lluvia de fuego",
+    "file": "La_lluvia_de_fuego.json",
+    "screens": 4,
+    "words": 767
+  },
+  {
+    "story": "La máscara de la Muerte Roja",
+    "file": "La_máscara_de_la_Muerte_Roja.json",
+    "screens": 4,
+    "words": 680
+  },
+  {
+    "story": "La noche de los feos",
+    "file": "La_noche_de_los_feos.json",
+    "screens": 4,
+    "words": 726
+  },
+  {
+    "story": "La salud de los enfermos",
+    "file": "La_salud_de_los_enfermos.json",
+    "screens": 4,
+    "words": 767
+  },
+  {
+    "story": "Las fotografías",
+    "file": "Las_fotografías.json",
+    "screens": 4,
+    "words": 757
+  },
+  {
+    "story": "Rebeca",
+    "file": "Rebeca.json",
+    "screens": 38,
+    "words": 2989
+  },
+  {
+    "story": "Rubí y el lago danzante",
+    "file": "Rubí_y_el_lago_danzante.json",
+    "screens": 4,
+    "words": 771
+  },
+  {
+    "story": "Sombras sobre vidrio esmerilado 1",
+    "file": "Sombras_sobre_vidrio_esmerilado_1.json",
+    "screens": 42,
+    "words": 3793
+  },
+  {
+    "story": "Sombras sobre vidrio esmerilado 2",
+    "file": "Sombras_sobre_vidrio_esmerilado_2.json",
+    "screens": 34,
+    "words": 2947
+  },
+  {
+    "story": "Una rosa para Emilia",
+    "file": "Una_rosa_para_Emilia.json",
+    "screens": 4,
+    "words": 767
+  },
+  {
+    "story": "Wakefield",
+    "file": "Wakefield.json",
+    "screens": 4,
+    "words": 843
+  }
+]

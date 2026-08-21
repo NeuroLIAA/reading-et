@@ -66,8 +66,9 @@ if __name__ == '__main__':
     parser.add_argument('--trial_path', type=str, default='data/processed/trials')
     parser.add_argument('--subj', type=str, required=True)
     parser.add_argument('--item', type=str, required=True)
+    parser.add_argument('--editable', action='store_true')
     args = parser.parse_args()
 
     trial_path = Path(args.trial_path) / args.subj / args.item
     stimuli = utils.load_stimuli(args.item, Path(args.stimuli_path))
-    trial(stimuli, trial_path)
+    trial(stimuli, trial_path, editable=args.editable)

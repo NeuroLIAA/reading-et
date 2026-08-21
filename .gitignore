@@ -24,6 +24,10 @@ stimuli/*
 *.zip
 scripts1/*
 correlacion/experiments/*
+correlacion/outputs/experiments/*
+!correlacion/outputs/experiments/README.md
+correlacion/human_results/*
+!correlacion/human_results/README.md
 old/*
 .codex
 correlacion/results_og_all_El_espejo/*
@@ -32,6 +36,8 @@ correlacion/results_og_all_Como_funcionan_los_bolsillos/*
 correlacion/results_og_all_Axolotl/*
 *.tsv
 *.json
+!correlacion/canonical_stimuli/
+!correlacion/canonical_stimuli/*.json
 *.png
 results/*.csv
 results/*
