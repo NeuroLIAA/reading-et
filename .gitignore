@@ -25,9 +25,7 @@ stimuli/*
 scripts1/*
 correlacion/experiments/*
 correlacion/outputs/experiments/*
-!correlacion/outputs/experiments/README.md
 correlacion/human_results/*
-!correlacion/human_results/README.md
 old/*
 .codex
 correlacion/results_og_all_El_espejo/*
